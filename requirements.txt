@@ -1,0 +1,8 @@
+phoebe
+numpy
+matplotlib
+time
+tqdm
+lightkurve
+multiprocessing
+collectisys
