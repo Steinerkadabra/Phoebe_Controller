@@ -17,6 +17,7 @@ def load_lc(lc_file = 'RS_CHA_lightcurve.txt', plot= True, npoints = 5000, point
     data = np.loadtxt(lc_file).T
     times = data[0]
     flux = data[1]
+
     if parts_of_lc:
         times = times[:npoints:points_step]
         flux = flux[:npoints:points_step]
@@ -77,7 +78,7 @@ def get_freqs_to_remove():
     fs = []
     for f in freqs:
         #fs.append(f.f)
-        if  (0.025 > f.f % (0.5988495842998753) and f.f < 10)  or  (f.f % (0.5988495842998753)  >(0.5988495842998753)-0.025 and f.f <10) or f.f < 0.25:
+        if  (0.025 > f.f % (0.5988495842998753) and f.f < 10)  or  (f.f % (0.5988495842998753)  >(0.5988495842998753)-0.025 and f.f <10) or f.f < 0.25 :
             ax[0].plot([f.f, f.f], [0, f.snr], 'k--')
         else:
             fs.append(f.f)
@@ -154,3 +155,6 @@ time, flux = load_lc('RS_Cha_lightcurve.txt', plot = False, parts_of_lc=False)
 ax.plot(time, flux, 'ko', markersize = 0.75)
 ax.plot(time, flux - mag, 'r-')
 plt.show()
+
+
+np.savetxt('LC_iteration_1.txt', np.array([time, flux - mag]).T)

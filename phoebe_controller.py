@@ -3,25 +3,29 @@ import phoebe
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from tqdm import tqdm
 import lightkurve as lk
 import multiprocessing as mp  # import Pool
-from collections import OrderedDict
+import sys
+import os
+import shutil
 
 
 
 
-def initialize_phoebe(multi = True):
-    logger = phoebe.logger(clevel='ERROR')  # ignore warnings - for tqdm to work properly
+def initialize_phoebe(output_dir):
+    try:
+        os.mkdir(output_dir)
+    except:
+        shutil.rmtree(output_dir)
+        os.mkdir(output_dir)
+    sys.stdout = Logger(output_dir)
+    phoebe.logger(clevel='ERROR')  # ignore warnings - for tqdm to work properly
     phoebe.interactive_checks_off()
     phoebe.check_visible_off()
     phoebe.interactive_constraints_off()
-    #if nprocs > 1:
-    #    phoebe.mpi_on(nprocs=nprocs)
-    #else:
-    #    phoebe.mpi_off()
+    return output_dir
 
-def load_lc(lc_file = 'RS_CHA_lightcurve', plot= True, npoints = 5000, points_step = 5, parts_of_lc = True):
+def load_lc(lc_file = 'RS_CHA_lightcurve.txt', plot= True, npoints = 5000, points_step = 5, parts_of_lc = True):
     data = np.loadtxt(lc_file).T
     times = data[0]
     flux = data[1]
@@ -145,17 +149,18 @@ def chi_square_multi(input_vals, flux, times, exp_time = False):
     for key in input_vals.keys():
         dict[key] = input_vals[key]
     binary = get_binary(dict)
-
-    binary.add_dataset('lc', times=times, dataset='lc01', overwrite=True, ld_func='logarithmic', passband='TESS:T')
+    binary.add_dataset('lc', times=times, dataset='lc01', fluxes = flux,  overwrite=True, ld_func='logarithmic', passband='TESS:T')
+    binary.set_value('pblum_mode', 'dataset-scaled')
     if exp_time:
         binary['exptime'] = 2, 's'
-        binary.run_compute(fti_method='oversample', ltte=False, model = 'mod', overwrite= True)
+        binary.run_compute(fti_method='oversample',  model = 'mod', overwrite= True)
+        #binary.run_compute( model = 'mod', overwrite= True)
     else:
-        binary.run_compute(ltte=False, model = 'mod', overwrite= True)
+        binary.run_compute( model = 'mod', overwrite= True)
     fluxes = binary.get_model(model = 'mod')['fluxes'].value
     times = binary.get_model(model = 'mod')['times'].value
     mod = lk.LightCurve(time = times, flux = fluxes)
-    mod = mod.normalize()
+    #mod = mod.normalize()
     chi_square = np.sum(np.array(flux - mod.flux)**2)
     return (chi_square, mod.flux)
 
@@ -433,9 +438,9 @@ def nelder_mead_opt_multi(input_vals, input_sigmas, flux, times, max_iter=20, se
     save.close()
 
 class Logger(object):
-    def __init__(self):
+    def __init__(self, output_dir):
         self.terminal = sys.stdout
-        self.log = open("phoebe_opt/sample.txt", "a")
+        self.log = open(f"{output_dir}/output.txt", "a")
 
     def write(self, message):
         self.terminal.write(message)
@@ -445,101 +450,4 @@ class Logger(object):
         self.terminal.flush()
         self.log.flush()
 
-import sys
-import RS_Cha as shit
 
-sys.stdout = Logger()
-
-
-initialize_phoebe(multi=True)
-#times, flux = load_lc(points_step=1)
-data = np.loadtxt('RS_CHA_lightcurve').T
-times = data[0]
-flux = data[1]
-
-data = shit.lc2(times, flux)
-
-mean, popt = data.phase_plot_minimization(0.5, 0.7, plot_sigmas= False)
-print(popt[1])
-
-
-times, flux = data.set_up_binary_model(popt[1])
-times = np.array(times)/popt[1]
-
-input_vals = {
-    'mass@primary': 1.89,
-    'mass@secondary': 1.87,
-    'incl@binary': 83.4,
-    'vsini@primary': 64,
-    'vsini@secondary': 70,
-    'requiv@primary': 2.15,
-    'requiv@secondary': 2.36,
-    'teff@primary': 7638,
-    'teff@secondary': 7228,
-    't0_supconj@binary@component': 1599.3971610805402,
-
-}
-
-input_sigmas = {
-    'mass@primary': 0.01,
-    'mass@secondary': 0.01,
-    'incl@binary': 0.3,
-    'vsini@primary': 6,
-    'vsini@secondary': 6,
-    'requiv@primary': 0.06,
-    'requiv@secondary': 0.006,
-    'teff@primary': 76,
-    'teff@secondary': 72,
-    't0_supconj@binary@component': 0.005,
-}
-
-#phoebe.mpi_on(nprocs=15)
-#
-#vert = vertex_multi(input_vals, flux, times, exp_time=True)
-#
-#fig, ax = plt.subplots()
-#ax.plot(times, flux, 'ko', markersize = 0.75)
-#ax.plot(vert.times, vert.flux_model, 'r-')
-#
-#ax.set_xlabel('Time - 2457000 [BTJD days]')
-#ax.set_ylabel('relative flux')
-#plt.show()
-
-
-nelder_mead_opt_multi(input_vals, input_sigmas, flux, times, settings = 'agressive',  max_iter=2000, ncores=32, output_dir='phoebe_opt', exp_time=True)
-
-'''
-### fit part of the lc ###
-input_vals = {
-    'mass@primary': 1.89,
-    'mass@secondary': 1.87,
-    'period@binary': 1.6699,
-    'incl@binary': 83.4,
-    'vsini@primary': 64,
-    'vsini@secondary': 70,
-    'requiv@primary': 2.15,
-    'requiv@secondary': 2.36,
-    'teff@primary': 7638,
-    'teff@secondary': 7228,
-    't0_supconj@binary@component': 1599.3971610805402,
-
-}
-
-input_sigmas = {
-    'mass@primary': 0.01,
-    'mass@secondary': 0.01,
-    'period@binary': 0.0001,
-    'incl@binary': 0.3,
-    'vsini@primary': 6,
-    'vsini@secondary': 6,
-    'requiv@primary': 0.06,
-    'requiv@secondary': 0.006,
-    'teff@primary': 76,
-    'teff@secondary': 72,
-    't0_supconj@binary@component': 0.005,
-
-}
-
-nelder_mead_opt_multi(input_vals, input_sigmas, flux, times, settings = 'agressive',  max_iter=500, ncores=32, output_dir='phoebe_opt')
-
-'''
