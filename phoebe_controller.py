@@ -25,7 +25,7 @@ def initialize_phoebe(output_dir):
     phoebe.interactive_constraints_off()
     return output_dir
 
-def load_lc(lc_file = 'RS_CHA_lightcurve.txt', plot= True, npoints = 5000, points_step = 5, parts_of_lc = True):
+def load_lc(lc_file = 'RS_CHA_lightcurve.txt', plot= False, npoints = 5000, points_step = 5, parts_of_lc = False):
     data = np.loadtxt(lc_file).T
     times = data[0]
     flux = data[1]
@@ -144,7 +144,7 @@ def get_binary(dict):
 
     return binary
 
-def chi_square_multi(input_vals, flux, times, exp_time = False):
+def chi_square_multi(input_vals, flux, times, sigmas, exp_time = False):
     dict = standard_binary()
     for key in input_vals.keys():
         dict[key] = input_vals[key]
@@ -160,8 +160,7 @@ def chi_square_multi(input_vals, flux, times, exp_time = False):
     fluxes = binary.get_model(model = 'mod')['fluxes'].value
     times = binary.get_model(model = 'mod')['times'].value
     mod = lk.LightCurve(time = times, flux = fluxes)
-    #mod = mod.normalize()
-    chi_square = np.sum(np.array(flux - mod.flux)**2)
+    chi_square = np.sum(np.array(flux - mod.flux)**2/np.array(sigmas))
     return (chi_square, mod.flux)
 
 def calc_an_plot(input_vals, flux, times, exp_time = False, ax = None):
@@ -200,7 +199,7 @@ class vertex_multi:
 
 
 class simplex_multi:
-    def __init__(self, input_vals, input_sigmas, flux, times, settings= 'standard', exp_time = False, ncores = 32):
+    def __init__(self, input_vals, input_sigmas, flux, times, sigmas, settings= 'standard', exp_time = False, ncores = 32):
         if settings == 'standard':
             self.alpha = 1
             self.gamma = 2
@@ -221,9 +220,10 @@ class simplex_multi:
         self.steps = []
         self.dims = len(input_vals) + 1
         self.vals = input_vals
-        self.sigmas = input_sigmas
+        self.input_sigmas = input_sigmas
         self.flux = flux
         self.times = times
+        self.sigmas = sigmas
         self.exp_time = exp_time
         self.start_nprocs = int(self.ncores/self.dims)
         if self.dims * self.start_nprocs > self.ncores:
@@ -241,7 +241,7 @@ class simplex_multi:
             vert_vals.append(ex_vert_vals)
         mult_input = []
         for each in vert_vals:
-            mult_input.append((each, flux, times, exp_time))
+            mult_input.append((each, flux, times, sigmas, exp_time))
         phoebe.mpi_on(nprocs=self.start_nprocs)
         with mp.Pool(self.dims) as p:
             self.vertices = p.starmap(vertex_multi, mult_input)
@@ -304,9 +304,9 @@ class simplex_multi:
         self.calculate_expanded_point(self.gamma)
         self.calculate_contracted_point(self.rho)
         mult_input = []
-        mult_input.append((self.reflected_point_vals, self.flux, self.times, self.exp_time))
-        mult_input.append((self.expanded_point_vals, self.flux, self.times, self.exp_time))
-        mult_input.append((self.contracted_point_vals, self.flux, self.times, self.exp_time))
+        mult_input.append((self.reflected_point_vals, self.flux, self.times, self.sigmas, self.exp_time))
+        mult_input.append((self.expanded_point_vals, self.flux, self.times, self.sigmas, self.exp_time))
+        mult_input.append((self.contracted_point_vals, self.flux, self.times, self.sigmas,  self.exp_time))
         phoebe.mpi_on(nprocs=10)
         with mp.Pool(processes=3) as p:
             calculated_points = p.starmap(vertex_multi, mult_input)
@@ -322,7 +322,7 @@ class simplex_multi:
             new_vals = self.centroid_vals.copy()
             for key in self.centroid_vals.keys():
                 new_vals[key] = self.vertices[0].vals[key] + self.sigma * (vert.vals[key] - self.vertices[0].vals[key])
-            mult_input.append((new_vals, self.flux, self.times, self.exp_time))
+            mult_input.append((new_vals, self.flux, self.times, self.sigmas,  self.exp_time))
         with mp.Pool(self.dims-1) as p:
             new_calculated = p.starmap(vertex_multi, mult_input)
         for each in new_calculated:
@@ -391,8 +391,8 @@ class color:
    END = '\033[0m'
 
 
-def nelder_mead_opt_multi(input_vals, input_sigmas, flux, times, max_iter=20, settings = 'standard', exp_time = False, ncores = 32, output_dir = None):
-    simp = simplex_multi(input_vals, input_sigmas, flux, times, settings = settings, exp_time = exp_time, ncores= ncores)
+def nelder_mead_opt_multi(input_vals, input_sigmas, flux, times, sigmas,  max_iter=20, settings = 'standard', exp_time = False, ncores = 32, output_dir = None):
+    simp = simplex_multi(input_vals, input_sigmas, flux, times, sigmas, settings = settings, exp_time = exp_time, ncores= ncores)
     simp.standard_deviation()
     simp.sort()
     print(color.BOLD +'Initial Simplex with standard deviation', simp.sd, ' and best vertex:' + color.END)
