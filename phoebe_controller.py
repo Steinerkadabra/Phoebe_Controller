@@ -397,9 +397,9 @@ class simplex_multi:
 
     def start_history(self):
         self.history = binary_history(self.vals)
-        self.history['steps'] = 'None'
-        self.history['simplex_sd'] = self.sd
-        self.history['chi**2'] = self.vertices[0].sd
+        self.history['steps'] = ['None']
+        self.history['simplex_sd'] = [self.sd]
+        self.history['chi**2'] = [self.vertices[0].sd]
 
 
     def update_history(self):
