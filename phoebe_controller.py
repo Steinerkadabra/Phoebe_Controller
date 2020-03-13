@@ -62,7 +62,7 @@ def standard_binary():
         'teff@secondary': 7228,
         'ecc@binary': 0,
         't0_supconj@binary@component': 1599.3971610805402,
-        'l3_frac': 0.0297703
+
 
     }
     return dict
@@ -148,8 +148,7 @@ def get_binary(dict):
     binary.set_value('syncpar@primary@component', 1)
 
     binary.set_value('t0_supconj@binary@component', dict['t0_supconj@binary@component'])
-    binary.set_value('l3_mode', 'fraction')
-    binary.set_value('l3_frac', dict['l3_frac'])
+
 
 
     return binary
@@ -161,6 +160,8 @@ def chi_square_multi(input_vals, flux, times, sigmas, exp_time = False):
     binary = get_binary(dict)
     binary.add_dataset('lc', times=times, dataset='lc01', fluxes = flux,  overwrite=True, ld_func='logarithmic', passband='TESS:T')
     binary.set_value('pblum_mode', 'dataset-scaled')
+    binary.set_value('l3_mode', 'fraction')
+    binary.set_value('l3_frac', 0.0297703)
     if exp_time:
         binary['exptime'] = 2, 's'
         binary.run_compute(fti_method='oversample',  model = 'mod', overwrite= True)
@@ -441,7 +442,7 @@ def nelder_mead_opt_multi(input_vals, input_sigmas, flux, times, sigmas,  max_it
     print(simp.history)
     simp.save_summary_plot(output_dir = output_dir)
     import pickle
-    save = open("phoebe_opt/history.pkl", "wb")
+    save = open(output_dir + "/history.pkl", "wb")
     pickle.dump(dict, save)
     save.close()
 
