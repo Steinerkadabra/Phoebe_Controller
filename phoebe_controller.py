@@ -387,7 +387,7 @@ class simplex_multi:
 
     def save_summary(self, output_dir = None):
         if output_dir != None:
-            np.savetxt(output_dir +'/Simplex_History.txt', np.array([self.steps, self.chi_history, self.sd_history]).T)
+            np.savetxt(output_dir +'/Simplex_History.txt', np.array([self.steps, self.chi_history, self.sd_history]).T, fmt = ['%s', '%d', '%d'] )
         else:
             np.savetxt(output_dir +'/Simplex_History.txt', np.array([self.steps, self.chi_history, self.sd_history]).T)
 
