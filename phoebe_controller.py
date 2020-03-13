@@ -285,6 +285,7 @@ class simplex_multi:
         new_vertex = self.reflected_point
         self.vertices.append(new_vertex)
         self.standard_deviation()
+        self.last_step = 'Reflection'
 
     def calculate_expanded_point(self, gamma):
         self.expanded_point_vals = self.centroid_vals.copy()
@@ -299,6 +300,7 @@ class simplex_multi:
             new_vertex = self.reflected_point
         self.vertices.append(new_vertex)
         self.standard_deviation()
+        self.last_step = 'Expansion'
 
     def calculate_contracted_point(self, rho):
         self.contracted_point_vals = self.centroid_vals.copy()
@@ -310,6 +312,7 @@ class simplex_multi:
         new_vertex = self.contracted_point
         self.vertices.append(new_vertex)
         self.standard_deviation()
+        self.last_step = 'Contraction'
 
     def calculate_points(self):
         self.calculate_reflected_point(self.alpha)
@@ -340,6 +343,7 @@ class simplex_multi:
         for each in new_calculated:
             new_vertices.append(each)
         self.vertices = new_vertices
+        self.last_step = 'Shrink'
         self.standard_deviation()
 
     def standard_deviation(self):
@@ -391,23 +395,31 @@ class simplex_multi:
         else:
             np.savetxt(output_dir +'/Simplex_History.txt', np.array([self.steps, self.chi_history, self.sd_history]).T)
 
+    def start_history(self):
+        self.history = binary_history(self.vals)
+        self.history['steps'] = 'None'
+        self.history['simplex_sd'] = self.sd
+        self.history['chi**2'] = self.vertices[0].sd
+
 
     def update_history(self):
         for key in self.vals.keys():
             self.history[key].append(self.vertices[0].vals[key])
-
+        self.history['steps'].append(self.last_step)
+        self.history['simplex_sd'].append(self.sd)
+        self.history['chi**2'].append(self.vertices[0].sd)
 
 class color:
-   PURPLE = '\033[95m'
-   CYAN = '\033[96m'
-   DARKCYAN = '\033[36m'
-   BLUE = '\033[94m'
-   GREEN = '\033[92m'
-   YELLOW = '\033[93m'
-   RED = '\033[91m'
-   BOLD = '\033[1m'
-   UNDERLINE = '\033[4m'
-   END = '\033[0m'
+    PURPLE = '\033[95m'
+    CYAN = '\033[96m'
+    DARKCYAN = '\033[36m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END = '\033[0m'
 
 
 def nelder_mead_opt_multi(input_vals, input_sigmas, flux, times, sigmas,  max_iter=20, settings = 'standard', exp_time = False, ncores = 32, output_dir = None):
@@ -416,6 +428,7 @@ def nelder_mead_opt_multi(input_vals, input_sigmas, flux, times, sigmas,  max_it
     simp.sort()
     print(color.BOLD +'Initial Simplex with standard deviation', simp.sd, ' and best vertex:' + color.END)
     simp.print_best_vertex()
+    simp.start_history()
     for i in range(max_iter):
         string= f'Iteration {i+1}: '
         simp.sort()
@@ -444,10 +457,14 @@ def nelder_mead_opt_multi(input_vals, input_sigmas, flux, times, sigmas,  max_it
         simp.steps.append(step)
         print(color.BOLD + string, 'We now have a standard deviation of',  simp.sd, 'and best vertex:' + color.END)
         simp.update_history()
+        f = open(output_dir + "/Simplex_History.txt", "w")
+        f.write(str(dict))
+        f.close()
         simp.print_best_vertex()
         #simp.save_summary_plot(output_dir = output_dir)
-        simp.save_summary(output_dir = output_dir)
-    print(simp.history)
+        #simp.save_summary(output_dir = output_dir)
+
+    #print(simp.history)
     #simp.save_summary_plot(output_dir = output_dir)
     import pickle
     save = open(output_dir + "/history.pkl", "wb")
