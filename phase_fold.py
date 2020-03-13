@@ -122,8 +122,8 @@ class lightcurve_to_fold():
         return bins, means, sds
 
     def get_binned_lc(self, rot_freq):
-        bins, means, sds = lc.set_up_binary_model(popt[1])
-        bins = np.array(bins)/popt[1]
+        bins, means, sds = lc.set_up_binary_model(rot_freq)
+        bins = np.array(bins)/rot_freq
         return bins, means, sds
 
 
