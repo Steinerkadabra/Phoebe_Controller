@@ -130,15 +130,3 @@ class lightcurve_to_fold():
 def gaus(x, a, x0, sigma, c):
     return a * np.exp(-(x - x0) ** 2 / (2 * sigma ** 2)) + c
 
-
-time, flux = phoebe_controller.load_lc('data/RS_Cha_lightcurve.txt')
-lc = lightcurve_to_fold(time, flux)
-mean, popt = lc.phase_plot_minimization(0.5, 0.7, plot_sigmas= False)
-bins, means, sds = lc.set_up_binary_model(popt[1])
-print(bins)
-print(popt[1])
-times = np.array(bins)/popt[1]
-
-plt.errorbar(times, means, yerr = sds, fmt = 'ko')
-plt.plot(time % (1/popt[1]), flux, 'bo', markersize = 0.75)
-plt.show()
