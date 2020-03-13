@@ -385,6 +385,13 @@ class simplex_multi:
             plt.savefig(f'Simplex_History{time.time()}.png')
             plt.close()
 
+    def save_summary(self, output_dir = None):
+        if output_dir != None:
+            np.savetxt(output_dir +'/Simplex_History.txt', np.array([self.steps, self.chi_history, self.sd_history]).T)
+        else:
+            np.savetxt(output_dir +'/Simplex_History.txt', np.array([self.steps, self.chi_history, self.sd_history]).T)
+
+
     def update_history(self):
         for key in self.vals.keys():
             self.history[key].append(self.vertices[0].vals[key])
@@ -438,9 +445,10 @@ def nelder_mead_opt_multi(input_vals, input_sigmas, flux, times, sigmas,  max_it
         print(color.BOLD + string, 'We now have a standard deviation of',  simp.sd, 'and best vertex:' + color.END)
         simp.update_history()
         simp.print_best_vertex()
-        simp.save_summary_plot(output_dir = output_dir)
+        #simp.save_summary_plot(output_dir = output_dir)
+        simp.save_summary(output_dir = output_dir)
     print(simp.history)
-    simp.save_summary_plot(output_dir = output_dir)
+    #simp.save_summary_plot(output_dir = output_dir)
     import pickle
     save = open(output_dir + "/history.pkl", "wb")
     pickle.dump(dict, save)
