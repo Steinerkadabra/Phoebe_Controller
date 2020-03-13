@@ -29,6 +29,10 @@ def load_lc(lc_file = 'RS_CHA_lightcurve.txt', plot= False, npoints = 5000, poin
     data = np.loadtxt(lc_file).T
     times = data[0]
     flux = data[1]
+    try:
+        sigmas = data[2]
+    except:
+        pass
     if parts_of_lc:
         times = times[:npoints:points_step]
         flux = flux[:npoints:points_step]
@@ -37,7 +41,10 @@ def load_lc(lc_file = 'RS_CHA_lightcurve.txt', plot= False, npoints = 5000, poin
         ax.plot(times, flux, 'ko', markersize = 0.75)
         plt.show()
         plt.close()
-    return  (times, flux)
+    try:
+        return  (times, flux, sigmas)
+    except:
+        return (times, flux, np.ones(len(flux)))
 
 
 def standard_binary():
@@ -55,6 +62,7 @@ def standard_binary():
         'teff@secondary': 7228,
         'ecc@binary': 0,
         't0_supconj@binary@component': 1599.3971610805402,
+        'l3_frac': 0.0297703
 
     }
     return dict
@@ -140,6 +148,8 @@ def get_binary(dict):
     binary.set_value('syncpar@primary@component', 1)
 
     binary.set_value('t0_supconj@binary@component', dict['t0_supconj@binary@component'])
+    binary.set_value('l3_mode', 'fraction')
+    binary.set_value('l3_frac', dict['l3_frac'])
 
 
     return binary
@@ -190,12 +200,13 @@ def calc_an_plot(input_vals, flux, times, exp_time = False, ax = None):
 
 
 class vertex_multi:
-    def __init__(self, input_vals, flux, times, exp_time):
+    def __init__(self, input_vals, flux, times, sigmas,  exp_time):
         self.flux = flux
         self.times = times
         self.vals = input_vals
         self.exp_time = exp_time
-        self.sd, self.flux_model = chi_square_multi(self.vals, self.flux, self.times, exp_time = self.exp_time)
+        self.sigmas = sigmas
+        self.sd, self.flux_model = chi_square_multi(self.vals, self.flux, self.times, self.sigmas,  exp_time = self.exp_time)
 
 
 class simplex_multi:
@@ -446,5 +457,4 @@ class Logger(object):
     def flush(self):
         self.terminal.flush()
         self.log.flush()
-
 
