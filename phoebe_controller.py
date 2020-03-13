@@ -458,7 +458,7 @@ def nelder_mead_opt_multi(input_vals, input_sigmas, flux, times, sigmas,  max_it
         print(color.BOLD + string, 'We now have a standard deviation of',  simp.sd, 'and best vertex:' + color.END)
         simp.update_history()
         f = open(output_dir + "/Simplex_History.txt", "w")
-        f.write(str(self.history))
+        f.write(str(simp.history))
         f.close()
         simp.print_best_vertex()
         #simp.save_summary_plot(output_dir = output_dir)
