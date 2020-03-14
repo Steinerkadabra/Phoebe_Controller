@@ -430,39 +430,42 @@ def nelder_mead_opt_multi(input_vals, input_sigmas, flux, times, sigmas,  max_it
     simp.print_best_vertex()
     simp.start_history()
     for i in range(max_iter):
-        string= f'Iteration {i+1}: '
-        simp.sort()
-        simp.calculate_centroid()
-        simp.calculate_points()
-        if simp.vertices[-2].sd > simp.reflected_point.sd >= simp.vertices[0].sd:
-            simp.reflection()
-            string = string + 'Reflection. '
-            step = 'Reflection'
-        elif simp.reflected_point.sd < simp.vertices[0].sd:
-            simp.expansion()
-            string = string + 'Expansion. '
-            step = 'Expansion'
-        else:
-            if simp.contracted_point.sd < simp.vertices[-1].sd:
-                simp.contraction()
-                string = string + 'Contraction. '
-                step = 'Contraction'
-            else:
-                simp.shrink()
-                string = string + 'Shrink. '
-                step = 'Shrink'
-        simp.sort()
-        simp.chi_history.append(simp.vertices[0].sd)
-        simp.sd_history.append(simp.sd)
-        simp.steps.append(step)
-        print(color.BOLD + string, 'We now have a standard deviation of',  simp.sd, 'and best vertex:' + color.END)
-        simp.update_history()
-        f = open(output_dir + "/Simplex_History.txt", "w")
-        f.write(str(simp.history))
-        f.close()
-        simp.print_best_vertex()
-        #simp.save_summary_plot(output_dir = output_dir)
-        #simp.save_summary(output_dir = output_dir)
+	    try:
+	        string= f'Iteration {i+1}: '
+	        simp.sort()
+	        simp.calculate_centroid()
+	        simp.calculate_points()
+	        if simp.vertices[-2].sd > simp.reflected_point.sd >= simp.vertices[0].sd:
+	            simp.reflection()
+	            string = string + 'Reflection. '
+	            step = 'Reflection'
+	        elif simp.reflected_point.sd < simp.vertices[0].sd:
+	            simp.expansion()
+	            string = string + 'Expansion. '
+	            step = 'Expansion'
+	        else:
+	            if simp.contracted_point.sd < simp.vertices[-1].sd:
+	                simp.contraction()
+	                string = string + 'Contraction. '
+	                step = 'Contraction'
+	            else:
+	                simp.shrink()
+	                string = string + 'Shrink. '
+	                step = 'Shrink'
+	        simp.sort()
+	        simp.chi_history.append(simp.vertices[0].sd)
+	        simp.sd_history.append(simp.sd)
+	        simp.steps.append(step)
+	        print(color.BOLD + string, 'We now have a standard deviation of',  simp.sd, 'and best vertex:' + color.END)
+	        simp.update_history()
+	        f = open(output_dir + "/Simplex_History.txt", "w")
+	        f.write(str(simp.history))
+	        f.close()
+	        simp.print_best_vertex()
+	        #simp.save_summary_plot(output_dir = output_dir)
+	        #simp.save_summary(output_dir = output_dir)
+	    except json.decoder.JSONDecodeError:
+	    	continue
 
     #print(simp.history)
     #simp.save_summary_plot(output_dir = output_dir)
