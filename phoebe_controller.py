@@ -13,17 +13,20 @@ import json
 
 
 
-def initialize_phoebe(output_dir):
-    try:
-        os.mkdir(output_dir)
-    except:
-        shutil.rmtree(output_dir)
-        os.mkdir(output_dir)
+def initialize_phoebe(output_dir = None, mpi_ncores = 0):
+    if output_dir != None:
+        try:
+            os.mkdir(output_dir)
+        except:
+            shutil.rmtree(output_dir)
+            os.mkdir(output_dir)
     sys.stdout = Logger(output_dir)
     phoebe.logger(clevel='ERROR')  # ignore warnings - for tqdm to work properly
     phoebe.interactive_checks_off()
     phoebe.check_visible_off()
     phoebe.interactive_constraints_off()
+    if mpi_ncores != 0:
+        phoebe.mpi_on(nprocs=mpi_ncores)
     return output_dir
 
 def load_lc(lc_file = 'RS_CHA_lightcurve.txt', plot= False, npoints = 5000, points_step = 5, parts_of_lc = False):
@@ -431,42 +434,42 @@ def nelder_mead_opt_multi(input_vals, input_sigmas, flux, times, sigmas,  max_it
     simp.print_best_vertex()
     simp.start_history()
     for i in range(max_iter):
-	    try:
-	        string= f'Iteration {i+1}: '
-	        simp.sort()
-	        simp.calculate_centroid()
-	        simp.calculate_points()
-	        if simp.vertices[-2].sd > simp.reflected_point.sd >= simp.vertices[0].sd:
-	            simp.reflection()
-	            string = string + 'Reflection. '
-	            step = 'Reflection'
-	        elif simp.reflected_point.sd < simp.vertices[0].sd:
-	            simp.expansion()
-	            string = string + 'Expansion. '
-	            step = 'Expansion'
-	        else:
-	            if simp.contracted_point.sd < simp.vertices[-1].sd:
-	                simp.contraction()
-	                string = string + 'Contraction. '
-	                step = 'Contraction'
-	            else:
-	                simp.shrink()
-	                string = string + 'Shrink. '
-	                step = 'Shrink'
-	        simp.sort()
-	        simp.chi_history.append(simp.vertices[0].sd)
-	        simp.sd_history.append(simp.sd)
-	        simp.steps.append(step)
-	        print(color.BOLD + string, 'We now have a standard deviation of',  simp.sd, 'and best vertex:' + color.END)
-	        simp.update_history()
-	        f = open(output_dir + "/Simplex_History.txt", "w")
-	        f.write(str(simp.history))
-	        f.close()
-	        simp.print_best_vertex()
-	        #simp.save_summary_plot(output_dir = output_dir)
+        try:
+            string= f'Iteration {i+1}: '
+            simp.sort()
+            simp.calculate_centroid()
+            simp.calculate_points()
+            if simp.vertices[-2].sd > simp.reflected_point.sd >= simp.vertices[0].sd:
+                simp.reflection()
+                string = string + 'Reflection. '
+                step = 'Reflection'
+            elif simp.reflected_point.sd < simp.vertices[0].sd:
+                simp.expansion()
+                string = string + 'Expansion. '
+                step = 'Expansion'
+            else:
+                if simp.contracted_point.sd < simp.vertices[-1].sd:
+                    simp.contraction()
+                    string = string + 'Contraction. '
+                    step = 'Contraction'
+                else:
+                    simp.shrink()
+                    string = string + 'Shrink. '
+                    step = 'Shrink'
+            simp.sort()
+            simp.chi_history.append(simp.vertices[0].sd)
+            simp.sd_history.append(simp.sd)
+            simp.steps.append(step)
+            print(color.BOLD + string, 'We now have a standard deviation of',  simp.sd, 'and best vertex:' + color.END)
+            simp.update_history()
+            f = open(output_dir + "/Simplex_History.txt", "w")
+            f.write(str(simp.history))
+            f.close()
+            simp.print_best_vertex()
+            #simp.save_summary_plot(output_dir = output_dir)
 	        #simp.save_summary(output_dir = output_dir)
-	    except json.decoder.JSONDecodeError:
-	    	continue
+        except json.decoder.JSONDecodeError:
+            continue
 
     #print(simp.history)
     #simp.save_summary_plot(output_dir = output_dir)
