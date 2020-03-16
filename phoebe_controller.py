@@ -13,14 +13,15 @@ import json
 
 
 
-def initialize_phoebe(output_dir = None, mpi_ncores = 0):
+def initialize_phoebe(output_dir = None, mpi_ncores = 0, logger = True):
     if output_dir != None:
         try:
             os.mkdir(output_dir)
         except:
             shutil.rmtree(output_dir)
             os.mkdir(output_dir)
-    sys.stdout = Logger(output_dir)
+    if logger = True:
+        sys.stdout = Logger(output_dir)
     phoebe.logger(clevel='ERROR')  # ignore warnings - for tqdm to work properly
     phoebe.interactive_checks_off()
     phoebe.check_visible_off()
