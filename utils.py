@@ -4,7 +4,7 @@ import ast
 import matplotlib.pyplot as plt
 
 def load_history(folder):
-    file = folder + '/Simplex_History.txt'
+    file = folder + 'Simplex_History.txt'
     with open(file, 'r') as file:
         data = file.read().replace('\n', '')
     return ast.literal_eval(data)
@@ -72,4 +72,5 @@ plt.rcParams.update({'font.size': 20.0, 'xtick.labelsize': 'x-small'})
 phoebe_controller.initialize_phoebe(mpi_ncores=16, logger=False)
 
 endurance_dir = 'data/'
-remove_binary_signal(endurance_dir + 'iteration1_sigma_minus/', endurance_dir, exp_time = True)
+remove_binary_signal(endurance_dir + 'iteration1_l3_off/', endurance_dir, exp_time = False)
+remove_binary_signal(endurance_dir + 'iteration1_l3_off_sigma_minus/', endurance_dir, exp_time = False)
