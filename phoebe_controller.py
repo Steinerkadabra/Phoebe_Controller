@@ -165,12 +165,12 @@ def chi_square_multi(input_vals, flux, times, sigmas, exp_time = False):
     binary = get_binary(dict)
     binary.add_dataset('lc', times=times, dataset='lc01', fluxes = flux,  overwrite=True, ld_func='logarithmic', passband='TESS:T')
     binary.set_value('pblum_mode', 'dataset-scaled')
-    #binary.set_value('l3_mode', 'fraction')
-    #binary.set_value('l3_frac', 0.0297703)
     if exp_time:
-        binary['exptime'] = 2, 's'
-        binary.run_compute(fti_method='oversample',  model = 'mod', overwrite= True)
-        #binary.run_compute( model = 'mod', overwrite= True)
+        binary.set_value('l3_mode', 'fraction')
+        binary.set_value('l3_frac', 0.0297703)
+        #binary['exptime'] = 2, 's'
+        #binary.run_compute(fti_method='oversample',  model = 'mod', overwrite= True)
+        binary.run_compute( model = 'mod', overwrite= True)
     else:
         binary.run_compute( model = 'mod', overwrite= True)
     fluxes = binary.get_model(model = 'mod')['fluxes'].value

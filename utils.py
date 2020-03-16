@@ -38,7 +38,7 @@ def load_lc(lc_file = 'RS_CHA_lightcurve.txt', plot= False, npoints = 5000, poin
         return times, flux, np.ones(len(flux))
 
 
-def remove_binary_signal(folder, endurance_dir):
+def remove_binary_signal(folder, endurance_dir, exp_time = False):
     history = load_history(folder)
     best_vals = get_best_vals(history)
     times, fluxes, sigmas = load_lc(endurance_dir + 'RS_Cha_lightcurve.txt', npoints=10000, parts_of_lc=False )
@@ -55,15 +55,15 @@ def remove_binary_signal(folder, endurance_dir):
         ax.set_ylabel('normalized flux')
     for ax in [ax10, ax11]:
         ax.set_xlim(np.min(times), np.min(times) + 3.2)
-    chi2, mod_flux = phoebe_controller.chi_square_multi(best_vals, fluxes, times, sigmas)
+    chi2, mod_flux = phoebe_controller.chi_square_multi(best_vals, fluxes, times, sigmas, exp_time= exp_time)
     ax00.plot(times, mod_flux, 'r-')
     ax10.plot(times, mod_flux, 'r-')
     ax01.plot(times, mod_flux-fluxes, 'ko', markersize = 0.75)
     ax11.plot(times, mod_flux-fluxes, 'ko', markersize = 0.75)
     plt.tight_layout()
-    plt.savefig(endurance_dir + 'LC_p_binary_model.png')
-    np.savetxt(endurance_dir+ 'binary_model.txt', np.array([times, mod_flux]).T)
-    np.savetxt(endurance_dir+ 'residuals.txt', np.array([times, np.array(mod_flux)- np.array(fluxes)]).T)
+    plt.savefig(folder + 'LC_p_binary_model.png')
+    np.savetxt(folder+ 'binary_model.txt', np.array([times, mod_flux]).T)
+    np.savetxt(folder+ 'residuals.txt', np.array([times, np.array(mod_flux)- np.array(fluxes)]).T)
     plt.show()
     plt.close()
 
@@ -72,4 +72,4 @@ plt.rcParams.update({'font.size': 20.0, 'xtick.labelsize': 'x-small'})
 phoebe_controller.initialize_phoebe(mpi_ncores=16, logger=False)
 
 endurance_dir = 'data/'
-remove_binary_signal(endurance_dir + 'iteration1', endurance_dir)
+remove_binary_signal(endurance_dir + 'iteration1', endurance_dir, exp_time = True)
