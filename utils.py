@@ -69,7 +69,7 @@ def remove_binary_signal(folder, endurance_dir):
 
 plt.rcParams.update({'font.size': 20.0, 'xtick.labelsize': 'x-small'})
 #print(plt.rcParams)
-phoebe_controller.initialize_phoebe(mpi_ncores=16)
+phoebe_controller.initialize_phoebe(mpi_ncores=16, logger=False)
 
 endurance_dir = 'data/'
 remove_binary_signal(endurance_dir + 'iteration1', endurance_dir)
