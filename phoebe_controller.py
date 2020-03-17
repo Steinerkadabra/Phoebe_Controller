@@ -327,7 +327,7 @@ class simplex_multi:
         mult_input.append((self.reflected_point_vals, self.flux, self.times, self.sigmas, self.exp_time))
         mult_input.append((self.expanded_point_vals, self.flux, self.times, self.sigmas, self.exp_time))
         mult_input.append((self.contracted_point_vals, self.flux, self.times, self.sigmas,  self.exp_time))
-        phoebe.mpi_on(nprocs=10)
+        phoebe.mpi_on(nprocs=self.nprocs)
         with mp.Pool(processes=3) as p:
             calculated_points = p.starmap(vertex_multi, mult_input)
         self.reflected_point = calculated_points[0]
