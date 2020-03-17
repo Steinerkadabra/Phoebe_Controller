@@ -38,10 +38,10 @@ def load_lc(lc_file = 'RS_CHA_lightcurve.txt', plot= False, npoints = 5000, poin
         return times, flux, np.ones(len(flux))
 
 
-def remove_binary_signal(folder, endurance_dir, exp_time = False):
+def remove_binary_signal(folder, endurance_dir, compare_lc,  exp_time = False):
     history = load_history(folder)
     best_vals = get_best_vals(history)
-    times, fluxes, sigmas = load_lc(endurance_dir + 'RS_Cha_lightcurve.txt', npoints=10000, parts_of_lc=False )
+    times, fluxes, sigmas = load_lc(endurance_dir + compare_lc, npoints=10000, parts_of_lc=False )
     fig3 = plt.figure(constrained_layout=True, figsize=(15,8))
     gs = fig3.add_gridspec(2, 3)
     ax00 = fig3.add_subplot(gs[0, :-1])
@@ -72,5 +72,5 @@ plt.rcParams.update({'font.size': 20.0, 'xtick.labelsize': 'x-small'})
 phoebe_controller.initialize_phoebe(mpi_ncores=16, logger=False)
 
 endurance_dir = 'data/'
-remove_binary_signal(endurance_dir + 'iteration1_l3_off/', endurance_dir, exp_time = False)
-remove_binary_signal(endurance_dir + 'iteration1_l3_off_sigma_minus/', endurance_dir, exp_time = False)
+remove_binary_signal(endurance_dir + 'iteration2/', endurance_dir, 'RS_Cha_lightcurve.txt', exp_time = False)
+remove_binary_signal(endurance_dir + 'iteration2_sigma_minus/', endurance_dir, 'RS_Cha_lightcurve.txt', exp_time = False)
