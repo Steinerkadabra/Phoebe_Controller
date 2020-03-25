@@ -63,7 +63,7 @@ def load_results(path: str):
                                    'phase': ufloat_fromstr})
     return settings, statistics, results
 
-def get_freqs_to_remove(file):
+def get_freqs_to_remove(file, plot = True):
     print(file + 'data/results.csv')
     settings, statistics, results = load_results(file + 'data/result.csv')
     fs = results['frequency'].values
@@ -77,7 +77,7 @@ def get_freqs_to_remove(file):
 
     freqs = []
     freqs_rl = []
-    for i in range(1, len(freqs_init)):
+    for i in range(0, len(freqs_init)):
         fnew = freqs_init[i]
         new = True
         if fnew.f < 0.25:
@@ -97,32 +97,33 @@ def get_freqs_to_remove(file):
         else :
             freqs_to_remove.append(f)
 
-    fig, ax = plt.subplots(2,1, figsize=(15,8))
-    for i in range(1,25):
-        ax[0].plot([i*0.5988495842998753, i*0.5988495842998753], [0, 0.001], 'r--')
-    for f in freqs_binary:
-        ax[0].plot([f.f, f.f], [0, f.amp], 'k--')
-    for f in freqs_rl:
-        ax[0].plot([f.f, f.f], [0, f.amp], 'k:')
-    fs = []
-    for f in freqs_to_remove:
-        ax[0].plot([f.f, f.f], [0, f.amp], 'k-')
-        fs.append(f.f)
+    if plot:
+        fig, ax = plt.subplots(2,1, figsize=(15,8))
+        for i in range(1,25):
+            ax[0].plot([i*0.5988495842998753, i*0.5988495842998753], [0, 0.001], 'r--')
+        for f in freqs_binary:
+            ax[0].plot([f.f, f.f], [0, f.amp], 'k--')
+        for f in freqs_rl:
+            ax[0].plot([f.f, f.f], [0, f.amp], 'k:')
+        fs = []
+        for f in freqs_to_remove:
+            ax[0].plot([f.f, f.f], [0, f.amp], 'k-')
+            fs.append(f.f)
 
 
-    ax[0].set_xlabel('Frequency ($d^{-1}$')
-    ax[0].set_ylabel('SNR')
+        ax[0].set_xlabel('Frequency ($d^{-1}$')
+        ax[0].set_ylabel('SNR')
 
-    ax[0].plot(0, 0, 'k--', label = 'probably from binary')
-    ax[0].plot(0, 0, 'k-', label = 'probably pulsations (to remove)')
-    ax[0].plot(0, 0, 'r--', label = 'binary multiple')
+        ax[0].plot(0, 0, 'k--', label = 'probably from binary')
+        ax[0].plot(0, 0, 'k-', label = 'probably pulsations (to remove)')
+        ax[0].plot(0, 0, 'r--', label = 'binary multiple')
 
-    ax[1].plot(np.array(fs) % 0.598849584299875, fs, 'ko')
-    #ax[2].plot(np.array(fs) % (2*0.598849584299875), fs, 'ko')
-    ax[0].legend()
+        ax[1].plot(np.array(fs) % 0.598849584299875, fs, 'ko')
+        #ax[2].plot(np.array(fs) % (2*0.598849584299875), fs, 'ko')
+        ax[0].legend()
 
 
-    #plt.show()
+        #plt.show()
     return freqs_to_remove, freqs_binary, freqs_rl
 
 
@@ -328,7 +329,8 @@ def generate_ooe_lc():
 #generate_ooe_lc()
 
 
-
+''' 
+###conformation_plot different analysis####
 ftr, fb, frl = get_freqs_to_remove('endurance_data/iteration1_removed_binary_savgol/')
 ftr_sp, fb_sp, frl_sp = get_freqs_to_remove('endurance_data/iteration1_removed_binary_savgol_1/')
 plt.close()
@@ -342,7 +344,6 @@ phis = period_res[2]
 freqs_period = []
 for i in range(len(fs)):
     freqs_period.append(mode(fs[i], amps[i], phis[i], 11))
-    print(fs[i], amps[i], phis[i])
 
 data = np.loadtxt('endurance_data/iteration1_removed_binary_savgol.txt').T
 time = data[0]
@@ -351,10 +352,13 @@ flux = data[1]
 flux_mod = np.zeros(len(time))
 for f in ftr:
     flux_mod = flux_mod + fourier_model(time, [f.f], [f.amp], [f.phase])
+    print(f.f,  f.amp, f.phase)
 for f in fb:
     flux_mod = flux_mod + fourier_model(time, [f.f], [f.amp], [f.phase])
+    print(f.f,  f.amp, f.phase)
 for f in frl:
     flux_mod = flux_mod + fourier_model(time, [f.f], [f.amp], [f.phase])
+    print(f.f,  f.amp, f.phase)
 
 flux_mod_sp = np.zeros(len(time))
 for f in ftr_sp:
@@ -402,7 +406,9 @@ ax[1].set_xlim(1612.2, 1623.8)
 ax[2].set_xlim(0, 40)
 
 plt.tight_layout(h_pad = 0, w_pad=0)
-plt.savefig('iteration1_removed_binary_savgol_period/compare_analysis.png')
+#plt.savefig('iteration1_removed_binary_savgol_period/compare_analysis.png')
+plt.show()
+'''
 
 
 '''

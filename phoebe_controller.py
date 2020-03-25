@@ -57,7 +57,7 @@ def standard_binary():
         'vgamma@system': 15.7,
         'mass@primary': 1.89,
         'mass@secondary': 1.89,
-        'period@binary': 1/0.5988495842998753,
+        'period@binary': 1.66987725,
         'incl@binary': 83.4,
         'vsini@primary': 64,
         'vsini@secondary': 70,
@@ -66,7 +66,7 @@ def standard_binary():
         'teff@primary': 7638,
         'teff@secondary': 7228,
         'ecc@binary': 0,
-        't0_supconj@binary@component': 1599.3971610805402,
+        't0_supconj@binary@component': 1599.397275,
 
 
     }
@@ -136,7 +136,7 @@ def get_binary(dict):
     binary.set_value('q', mass2 / mass1)
     binary.set_value('incl@binary', incl)
     binary.set_value('sma@binary', sma)  # calculated
-    binary.set_value('ecc@binary', dict['ecc@binary'])
+    binary.set_value('ecc@binary', abs(dict['ecc@binary']))
 
     binary.set_value('period@binary', P)  # calculated
 
