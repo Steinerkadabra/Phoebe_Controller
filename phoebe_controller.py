@@ -169,12 +169,16 @@ def chi_square_multi(input_vals, flux, times, sigmas, exp_time = False):
         ###third light####
         #binary.set_value('l3_mode', 'fraction')
         #binary.set_value('l3_frac', 0.0297703)
-        binary.run_compute(model = 'mod', overwrite= True)
+        #binary.run_compute(model = 'mod', overwrite= True)
         #### exposure time ####
         #binary['exptime'] = 2, 's'
         #binary.run_compute(fti_method='oversample',  model = 'mod', overwrite= True)
+        ### grav_bol####
+        binary['gravb_bol@primary'] = 0.8
+        binary['gravb_bol@secondary'] = 0.8
+        binary.run_compute(irrad_method='wilson', model='mod', overwrite=True)
         #### irrad method
-        binary.run_compute(irrad_method='wilson',  model = 'mod', overwrite= True)
+        #binary.run_compute(irrad_method='wilson',  model = 'mod', overwrite= True)
     else:
         binary.run_compute( model = 'mod', overwrite= True)
     fluxes = binary.get_model(model = 'mod')['fluxes'].value
