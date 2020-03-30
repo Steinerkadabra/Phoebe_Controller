@@ -182,8 +182,8 @@ def chi_square_multi(input_vals, flux, times, sigmas, exp_time = False):
         #binary['irrad_frac_refl_bol@secondary'] = 0.9
         #binary.run_compute(irrad_method='wilson',  model = 'mod', overwrite= True)
         ### ld mode ####
-        binary['ld_coeffs_bol@primary'] = 'interp'
-        binary['ld_coeffs_bol@secondary'] = 'interp'
+        binary['ld_mode_bol@primary'] = 'interp'
+        binary['ld_mode_bol@secondary'] = 'interp'
         binary.run_compute(model = 'mod', overwrite= True)
     else:
         binary.run_compute( model = 'mod', overwrite= True)
