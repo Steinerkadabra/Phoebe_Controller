@@ -61,9 +61,9 @@ def remove_binary_signal(folder, endurance_dir, compare_lc,  exp_time = False):
     ax01.plot(times, mod_flux-fluxes, 'ko', markersize = 0.75)
     ax11.plot(times, mod_flux-fluxes, 'ko', markersize = 0.75)
     plt.tight_layout()
-    plt.savefig(folder + 'LC_p_binary_model.png')
-    np.savetxt(folder+ 'binary_model.txt', np.array([times, mod_flux]).T)
-    np.savetxt(folder+ 'residuals.txt', np.array([times, np.array(mod_flux)- np.array(fluxes)]).T)
+    plt.savefig(folder + 'LC_p_binary_model_irrad_on.png')
+    np.savetxt(folder+ 'binary_model_irrad_on.txt', np.array([times, mod_flux]).T)
+    np.savetxt(folder+ 'residuals_irrad_on.txt', np.array([times, np.array(mod_flux)- np.array(fluxes)]).T)
     plt.show()
     plt.close()
 
@@ -73,4 +73,4 @@ phoebe_controller.initialize_phoebe(mpi_ncores=16, logger=False)
 
 endurance_dir = 'data/'
 #remove_binary_signal(endurance_dir + 'iteration2/', endurance_dir, 'result_iteration1.txt', exp_time = False)
-remove_binary_signal(endurance_dir + 'Removed_Pulsations_from_first_run_classic/', endurance_dir,  'Removed_Pulsations_from_first_run.txt', exp_time = False)
+remove_binary_signal(endurance_dir + 'Removed_Pulsations_from_first_run_classic/', endurance_dir,  'Removed_Pulsations_from_first_run.txt', exp_time = True)
