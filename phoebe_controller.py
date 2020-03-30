@@ -178,8 +178,8 @@ def chi_square_multi(input_vals, flux, times, sigmas, exp_time = False):
         #binary['gravb_bol@secondary'] = 0.05
         #binary.run_compute(irrad_method='wilson', model='mod', overwrite=True)
         #### irrad method
-        binary['irrad_frac_refl_bol@primary'] = 0.5
-        binary['irrad_frac_refl_bol@secondary'] = 0.5
+        binary['irrad_frac_refl_bol@primary'] = 0.9
+        binary['irrad_frac_refl_bol@secondary'] = 0.9
         binary.run_compute(irrad_method='horvat',  model = 'mod', overwrite= True)
         ### ld mode ####
         #binary['ld_mode@primary'] = 'interp'
