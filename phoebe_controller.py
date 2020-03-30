@@ -186,7 +186,7 @@ def chi_square_multi(input_vals, flux, times, sigmas, exp_time = False):
         #binary['ld_mode@secondary'] = 'interp'
         #binary.run_compute(model = 'mod', overwrite= True)
     else:
-        binary.run_compute(eclipse_method='visible_partial', model = 'mod', overwrite= True)
+        binary.run_compute(model = 'mod', overwrite= True)
     fluxes = binary.get_model(model = 'mod')['fluxes'].value
     times = binary.get_model(model = 'mod')['times'].value
     mod = lk.LightCurve(time = times, flux = fluxes)

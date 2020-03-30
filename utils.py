@@ -73,4 +73,4 @@ phoebe_controller.initialize_phoebe(mpi_ncores=16, logger=False)
 
 endurance_dir = 'data/'
 #remove_binary_signal(endurance_dir + 'iteration2/', endurance_dir, 'result_iteration1.txt', exp_time = False)
-remove_binary_signal(endurance_dir + 'Removed_Pulsations_from_first_run_classic/', endurance_dir,  'Removed_Pulsations_from_first_run.txt', exp_time = False)
+remove_binary_signal(endurance_dir + 'Removed_Pulsations_from_first_run_new_teff50/', endurance_dir,  'Removed_Pulsations_from_first_run.txt', exp_time = False)
