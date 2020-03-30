@@ -174,13 +174,13 @@ def chi_square_multi(input_vals, flux, times, sigmas, exp_time = False):
         #binary['exptime'] = 2, 's'
         #binary.run_compute(fti_method='oversample',  model = 'mod', overwrite= True)
         ### grav_bol####
-        #binary['gravb_bol@primary'] = 0.05
-        #binary['gravb_bol@secondary'] = 0.05
-        #binary.run_compute(irrad_method='wilson', model='mod', overwrite=True)
+        binary['gravb_bol@primary'] = 0.5
+        binary['gravb_bol@secondary'] = 0.5
+        binary.run_compute(irrad_method='horvat', model='mod', overwrite=True)
         #### irrad method
-        binary['irrad_frac_refl_bol@primary'] = 0.9
-        binary['irrad_frac_refl_bol@secondary'] = 0.9
-        binary.run_compute(irrad_method='horvat',   model = 'mod', overwrite= True)
+        #binary['irrad_frac_refl_bol@primary'] = 0.9
+        #binary['irrad_frac_refl_bol@secondary'] = 0.9
+        #binary.run_compute(irrad_method='horvat',   model = 'mod', overwrite= True)
         ### ld mode ####
         #binary['ld_mode@primary'] = 'interp'
         #binary['ld_mode@secondary'] = 'interp'
