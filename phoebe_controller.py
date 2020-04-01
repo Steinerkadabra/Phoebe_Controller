@@ -176,7 +176,7 @@ def chi_square_multi(input_vals, flux, times, sigmas, exp_time = False):
         ### grav_bol####
         #binary['gravb_bol@primary'] = 0.8
         #binary['gravb_bol@secondary'] = 0.8
-        #binary.run_compute(irrad_method='horvat', model='mod', overwrite=True)
+        binary.run_compute(irrad_method='horvat', model='mod', overwrite=True)
         #### irrad method
         #binary['irrad_frac_refl_bol@primary'] = 0.9
         #binary['irrad_frac_refl_bol@secondary'] = 0.9
@@ -184,7 +184,7 @@ def chi_square_multi(input_vals, flux, times, sigmas, exp_time = False):
         ### ld mode ####
         #binary['ld_mode@primary'] = 'interp'
         #binary['ld_mode@secondary'] = 'interp'
-        binary.run_compute(model = 'mod', overwrite= True)
+        #binary.run_compute(model = 'mod', overwrite= True)
     else:
         binary.run_compute(model = 'mod', overwrite= True)
     fluxes = binary.get_model(model = 'mod')['fluxes'].value

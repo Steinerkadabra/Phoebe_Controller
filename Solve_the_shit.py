@@ -266,8 +266,10 @@ x_f = np.linspace(np.min(x), np.max(x), 2000)
 #for i in x:
 #    y.append(primary_10_2.phi_mark_n_l(i))
 #plt.plot(x, y, 'ro')
-plt.plot(x_f, primary_10_2.h2_n_l(x_f), 'ko')
-plt.plot(x_f, -5/16*x_f**3, 'r-')
+fig, ax = plt.subplots(2,1)
+ax[0].plot(x_f, primary_10_2.h2_n_l(x_f), 'ko')
+ax[0].plot(x_f, -35/16*x_f**3, 'r-')
+ax[1].plot(x_f, -35/16*x_f**3-primary_10_2.h2_n_l(x_f), 'r-')
 plt.show()
 
 #plt.plot(x_f, primary_10_2.g1_n_l(x_f), 'g-')
