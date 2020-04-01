@@ -42,7 +42,7 @@ min = 0
 def create_derivative(x_vals, func):
     dif_vals = []
     for val in x_vals:
-        dif_vals.append(misc.derivative(func, val, dx = 10**(-13)))
+        dif_vals.append(misc.derivative(func, val, dx = 10**(-6)))
     return inter.interp1d(x_vals, dif_vals, fill_value= 'extrapolate', kind = 'cubic')
 
 
@@ -163,9 +163,9 @@ class Tidal_Perturbation():
         #       + 3*(self.star.xi_st(r)-self.star.eta_st(r)/r)*self.eta_nl_div_r(r) #+ r**2 *self.star.xi_st_div_r(r)*self.eps_nl_div_r(r)
 
     def h2_n_l(self, r):
-        #return -35/16*r**3##homology test case - analytic solution
+        return -35/16*r**3##homology test case - analytic solution
         ### implementation seems correct ### 1d-7
-        return r**2*self.star.xi_st_div_r(r)*self.eps_nl(r) + 3 * (self.star.xi_st(r)-self.star.eta_st(r)/r)*self.eta_nl(r)
+        #return r**2*self.star.xi_st_div_r(r)*self.eps_nl(r) + 3 * (self.star.xi_st(r)-self.star.eta_st(r)/r)*self.eta_nl(r)
 
     def F1_n_l_func(self, r):
         return self.eps_nl(r)*self.P0_div_r(r)*(self.h1_n_l(r)+self.rho0_div_r(r)/self.rho(r)*self.h2_n_l(r))
