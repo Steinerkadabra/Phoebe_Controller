@@ -260,22 +260,22 @@ print(primary.R1)
 primary_10_2 = Tidal_Perturbation(10, 2, primary)
 
 
-#x = primary.x
-#x_f = np.linspace(np.min(x), np.max(x), 2000)
+x = primary.x
+x_f = np.linspace(np.min(x), np.max(x), 2000)
 #y = []
 #for i in x:
 #    y.append(primary_10_2.phi_mark_n_l(i))
 #plt.plot(x, y, 'ro')
-#plt.plot(x_f, primary_10_2.h1_n_l(x_f), 'ko')
-#plt.plot(x_f, -10/8*x_f, 'r-')
-#plt.show()
+plt.plot(x_f, primary_10_2.h2_n_l(x_f), 'ko')
+plt.plot(x_f, -5/16*x_f**3, 'r-')
+plt.show()
 
 #plt.plot(x_f, primary_10_2.g1_n_l(x_f), 'g-')
 #plt.show()
 
 #print(primary_10_2.sigma_n)
-print(primary_10_2.A_l())
-result = primary_10_2.H_n_0_n_0()
-print(result, result / (65/28))
+#print(primary_10_2.A_l())
+#result = primary_10_2.H_n_0_n_0()
+#print(result, result / (65/28))
 
 
