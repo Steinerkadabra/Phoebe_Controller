@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import lightkurve as lk
 
 print(plt.rcParams)
 plt.rcParams.update({'font.size': 15, 'xtick.labelsize': 'small', 'ytick.labelsize': 'small',})
@@ -13,7 +14,7 @@ do_all = False
 
 
 ### Figure 1: lightcurve, gaps and shit ###
-if True or do_all:
+if False or do_all:
     data = np.loadtxt('endurance_data/' + 'RS_Cha_lightcurve.txt').T
     time = data[0]
     flux = data[1]
@@ -68,7 +69,7 @@ def gaus(x, a, x0, sigma, c):
 def line(x, a, b):
     return a * x + b
 
-if True or do_all:
+if False or do_all:
     from scipy.optimize import curve_fit
     import lightkurve as lk
     data = np.loadtxt('endurance_data/' + 'Removed_Pulsations_from_first_run.txt').T
@@ -154,3 +155,35 @@ if True or do_all:
     plt.savefig(dir + 'Figure3_O_C_diagram.pdf', bbox_inches = 0)
 
 
+#### Mail #####
+
+if True:
+    fig, ax = plt.subplots(3,1, figsize = figsize1, dpi = dpi)
+    data = np.loadtxt('endurance/' + 'RS_Cha_lightcurve.txt').T
+    time = data[0]
+    flux = data[1]
+    ax[0].plot(time, flux, 'ko', markersize = 0.75)
+    data2 = np.loadtxt('endurance/' + 'lets_try_a_third_of_the_lightcurve/binary_model.txt').T
+    time2 = data2[0]
+    flux2 = data2[1]
+    ax[0].plot(time2, flux2, 'r-', lw = 0.75)
+    ax[1].plot(time2, flux - flux2, 'ko', markersize = 0.75)
+    time = data[0]
+    flux = data[1]
+    ax[0].set_xlabel('Time - 2457000 [BTJD days]')
+    ax[0].set_ylabel('normalized flux')
+    ax[1].set_xlabel('Time - 2457000 [BTJD days]')
+    ax[1].set_ylabel('normalized flux')
+    ax[0].set_xlim(1600, 1610)
+    ax[1].set_xlim(1600, 1610)
+    lc = lk.LightCurve(time, flux - flux2)
+    pdg=lc.to_periodogram()
+    ax[2].plot(pdg.frequency, pdg.power, 'k-')
+    for i in range(1, 60):
+        ax[2].plot([i * 1/1.66987725, i / 1.66987725], ax[2].set_ylim(), 'b--', lw = 0.5)
+    ax[2].set_xlim(8, 35)
+    ax[2].set_xlabel('frequency $d^{-1}')
+    ax[2].set_ylabel('power')
+    plt.tight_layout(h_pad=0, w_pad=0)
+
+    plt.savefig(dir + 'mail.png', bbox_inches = 0)
