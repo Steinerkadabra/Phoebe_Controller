@@ -174,7 +174,9 @@ class Tidal_Perturbation():
         return -int.quad(self.F1_n_l_func, min, self.star.R1, limit = 500)[0]
 
     def alpha_n_l(self, r):
-        return 2/r*self.eps_nl(r)+self.eps_nl_div_r(r)-self.l*(self.l+1)/r**2*self.eta_nl(r)
+        ### works ### 1d-10
+        return 0
+        #return 2/r*self.eps_nl(r)+self.eps_nl_div_r(r)-self.l*(self.l+1)/r**2*self.eta_nl(r)
 
     def F2_n_l_func(self, r):
         return (self.alpha_n_l(r)*(self.rho(r)*self.c0(r)**2*self.h1_n_l(r)+self.P0_div_r(r)*self.h2_n_l(r)))
@@ -269,9 +271,12 @@ x_f = np.linspace(np.min(x), np.max(x), 2000)
 #    y.append(primary_10_2.phi_mark_n_l(i))
 #plt.plot(x, y, 'ro')
 fig, ax = plt.subplots(2,1)
-ax[0].plot(x_f, primary_10_2.h2_n_l(x_f), 'ko')
-ax[0].plot(x_f, -35/16*x_f**3, 'r-')
-ax[1].plot(x_f, -35/16*x_f**3-primary_10_2.h2_n_l(x_f), 'r-')
+implemented = primary_10_2.alpha_n_l(x_f)
+expected = 0*x_f
+
+ax[0].plot(x_f,implemented , 'ko')
+ax[0].plot(x_f, expected, 'r-')
+ax[1].plot(x_f,expected -  implemented, 'r-')
 plt.show()
 
 #plt.plot(x_f, primary_10_2.g1_n_l(x_f), 'g-')
