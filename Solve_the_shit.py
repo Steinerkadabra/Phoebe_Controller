@@ -157,6 +157,7 @@ class Tidal_Perturbation():
 
     def h1_n_l(self, r):
         return 0 ##homology test case - analytic solution
+        ### implementation seems correct ###
         #return (2*self.star.xi_st(r) - 9 * self.star.eta_st(r)/r + 3*self.star.eta_st_div_r(r))*self.eps_nl(r) \
         #       + 3*(4*self.star.eta_st(r)/r-(1+self.l*(self.l+1)/3)*self.star.xi_st(r)-self.star.eta_st_div_r(r))*self.eta_nl(r)/r \
         #       + 3*(self.star.xi_st(r)-self.star.eta_st(r)/r)*self.eta_nl_div_r(r) #+ r**2 *self.star.xi_st_div_r(r)*self.eps_nl_div_r(r)
