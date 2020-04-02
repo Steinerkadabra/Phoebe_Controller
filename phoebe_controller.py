@@ -67,6 +67,10 @@ def standard_binary():
         'teff@secondary': 7228,
         'ecc@binary': 0,
         't0_supconj@binary@component': 1599.397275,
+        'gravb_bol@primary' : 0.5,
+        'gravb_bol@secondary' : 0.5,
+        'irrad_frac_refl_bol@primary' : 0.5,
+        'irrad_frac_refl_bol@secondary' : 0.5,
 
 
     }
@@ -97,12 +101,16 @@ def units():
         'teff@secondary': 'K',
         'ecc@binary': 'deg',
         't0_supconj@binary@component': 'days',
-        'passed calculation time': 's'
+        'passed calculation time': 's',
+        'gravb_bol@primary' : ' ',
+        'gravb_bol@secondary' : ' ',
+        'irrad_frac_refl_bol@primary' : ' ',
+        'irrad_frac_refl_bol@secondary' : ' ',
 
     }
     return dict
 
-def get_binary(dict):
+def get_binary(dict, times, flux):
     binary = phoebe.default_binary()
     binary.set_value('vgamma@system', dict['vgamma@system'])
     mass1 = dict['mass@primary']
@@ -156,23 +164,29 @@ def get_binary(dict):
 
 
 
+    binary.add_dataset('lc', times=times, dataset='lc01', fluxes = flux,  overwrite=True, ld_func='logarithmic', passband='TESS:T')
+    binary.set_value('pblum_mode', 'dataset-scaled')
+
+    binary['gravb_bol@primary'] = dict['gravb_bol@primary']
+    binary['gravb_bol@secondary'] = dict['gravb_bol@secondary']
+    binary['irrad_frac_refl_bol@primary'] =dict['irrad_frac_refl_bol@primary']
+    binary['irrad_frac_refl_bol@secondary'] = dict['irrad_frac_refl_bol@secondary']
+
     return binary
 
 def chi_square_multi(input_vals, flux, times, sigmas, exp_time = False):
     dict = standard_binary()
     for key in input_vals.keys():
         dict[key] = input_vals[key]
-    binary = get_binary(dict)
-    binary.add_dataset('lc', times=times, dataset='lc01', fluxes = flux,  overwrite=True, ld_func='logarithmic', passband='TESS:T')
-    binary.set_value('pblum_mode', 'dataset-scaled')
+    binary = get_binary(dict, times, flux)
     if exp_time:
         ###third light####
         #binary.set_value('l3_mode', 'fraction')
         #binary.set_value('l3_frac', 0.0297703)
         #binary.run_compute(model = 'mod', overwrite= True)
         #### exposure time ####
-        binary['exptime'] = 120, 's'
-        binary.run_compute(fti_method='oversample',  model = 'mod', overwrite= True)
+        #binary['exptime'] = 120, 's'
+        #binary.run_compute(fti_method='oversample',  model = 'mod', overwrite= True)
         ### grav_bol####
         #binary['gravb_bol@primary'] = 0.7
         #binary['gravb_bol@secondary'] = 0.8
@@ -181,7 +195,7 @@ def chi_square_multi(input_vals, flux, times, sigmas, exp_time = False):
         #### irrad method
         #binary['irrad_frac_refl_bol@primary'] = 0.9
         #binary['irrad_frac_refl_bol@secondary'] = 0.9
-        #binary.run_compute(irrad_method='horvat',   model = 'mod', overwrite= True)
+        binary.run_compute(irrad_method='horvat',   model = 'mod', overwrite= True)
         ### ld mode ####
         #binary['ld_mode@primary'] = 'interp'
         #binary['ld_mode@secondary'] = 'interp'

@@ -156,16 +156,16 @@ class Tidal_Perturbation():
         return int.nquad(self.A_l_func, [[0, 2*np.pi], [0, np.pi]])[0]
 
     def h1_n_l(self, r):
-        return 0 ##homology test case - analytic solution
+        #return 0 ##homology test case - analytic solution
         ### implementation seems correct ### 1d-7
-        #return (2*self.star.xi_st(r) - 9 * self.star.eta_st(r)/r + 3*self.star.eta_st_div_r(r))*self.eps_nl(r) \
-        #       + 3*(4*self.star.eta_st(r)/r-(1+self.l*(self.l+1)/3)*self.star.xi_st(r)-self.star.eta_st_div_r(r))*self.eta_nl(r)/r \
-        #       + 3*(self.star.xi_st(r)-self.star.eta_st(r)/r)*self.eta_nl_div_r(r) #+ r**2 *self.star.xi_st_div_r(r)*self.eps_nl_div_r(r)
+        return (2*self.star.xi_st(r) - 9 * self.star.eta_st(r)/r + 3*self.star.eta_st_div_r(r))*self.eps_nl(r) \
+               + 3*(4*self.star.eta_st(r)/r-(1+self.l*(self.l+1)/3)*self.star.xi_st(r)-self.star.eta_st_div_r(r))*self.eta_nl(r)/r \
+               + 3*(self.star.xi_st(r)-self.star.eta_st(r)/r)*self.eta_nl_div_r(r) + r**2 *self.star.xi_st_div_r(r)*self.eps_nl_div_r(r)
 
     def h2_n_l(self, r):
-        return -35/16*r**3##homology test case - analytic solution
+        #return -35/16*r**3##homology test case - analytic solution
         ### implementation seems correct ### 1d-7
-        #return r**2*self.star.xi_st_div_r(r)*self.eps_nl(r) + 3 * (self.star.xi_st(r)-self.star.eta_st(r)/r)*self.eta_nl(r)
+        return r**2*self.star.xi_st_div_r(r)*self.eps_nl(r) + 3 * (self.star.xi_st(r)-self.star.eta_st(r)/r)*self.eta_nl(r)
 
     def F1_n_l_func(self, r):
         ### seems to work ### no real test possible
@@ -176,13 +176,14 @@ class Tidal_Perturbation():
 
     def alpha_n_l(self, r):
         ### works ### 1d-10
-        return 0
-        #return 2/r*self.eps_nl(r)+self.eps_nl_div_r(r)-self.l*(self.l+1)/r**2*self.eta_nl(r)
+        #return 0
+        return 2/r*self.eps_nl(r)+self.eps_nl_div_r(r)-self.l*(self.l+1)/r**2*self.eta_nl(r)
 
     def F2_n_l_func(self, r):
         return (self.alpha_n_l(r)*(self.rho(r)*self.c0(r)**2*self.h1_n_l(r)+self.P0_div_r(r)*self.h2_n_l(r)))
 
     def F2_n_l(self):
+        #### tested #### 1d-8
         return -int.quad(self.F2_n_l_func, min, self.star.R1, limit = 500)[0] + self.eps_nl(self.star.R1)\
                *(self.rho(self.star.R1)*self.c0(self.star.R1)**2*self.h1_n_l(self.star.R1)+
                  self.P0_div_r(self.star.R1)*self.h2_n_l(self.star.R1))
@@ -199,7 +200,7 @@ class Tidal_Perturbation():
     def phi_mark_n_l(self, r):
         return -4*np.pi*G/(2*self.l+1)*(r**(-self.l+1)*int.quad(self.phi_mark_n_l_funk_below, min, r)[0] + r**self.l
                                         * int.quad(self.phi_mark_n_l_funk_above, r, self.star.R1)[0]
-                                        + self.rho(self.star.R1)*self.eps_nl(self.star.R1)/self.star.R1**(self.l-1))
+                                        + self.rho(self.star.R1)*self.eps_nl(self.star.R1)/self.star.R1**(self.l-1)*r**2)
 
     def g1_n_l_funk_below(self, r):
         return self.rho_mark_n_l(r)*r**(self.l+1)*(self.l*self.star.xi_st(r)+3*self.star.eta_st(r)/r)
@@ -212,14 +213,18 @@ class Tidal_Perturbation():
                + r**self.l*int.quad(self.g1_n_l_funk_above, r, self.star.R1, limit = 500)[0]
 
     def g2_n_l_funk_below(self, r):
+        ##### works ###
         return self.rho(r)*r**(self.l-1)*self.h2_n_l(r)
 
     def g2_n_l_funk_above(self, r):
+        ### works ###
         return self.rho(r)*r**(-self.l-2)*self.h2_n_l(r)
 
     def g2_n_l(self, r):
+        #### works ###
         return self.l*r**(-self.l-1)*int.quad(self.g2_n_l_funk_below, min, r)[0]\
-               - (self.l+1)*r**self.l*int.quad(self.g2_n_l_funk_above, r, self.star.R1)[0]
+               -(self.l+1)*r**self.l*int.quad(self.g2_n_l_funk_above, r, self.star.R1)[0]
+
 
     def h3_n_l(self, r):
         return 3*(self.star.eta_st_div_r(r)/r-self.star.eta_st(r)/r**2)*self.eps_nl(r)\
@@ -246,17 +251,18 @@ class Tidal_Perturbation():
         return self.rho_mark_n_l(r)*r**2*self.f3_n_l_func_part(r)
 
     def F3_n_l(self):
-        return self.rho(self.star.R1)*self.star.R1**2*self.eps_nl(self.star.R1)*self.f3_n_l_func(self.star.R1)\
+        return self.rho(self.star.R1)*self.star.R1**2*self.eps_nl(self.star.R1)*self.f3_n_l_func_part(self.star.R1)\
                +int.quad(self.f3_n_l_func, min, self.star.R1)[0]
 
-    def F4_n_l_func(self, r):
+    def f4_n_l_func(self, r):
         return -self.rho(r)*(self.eps_nl(r)*self.h2_n_l(r)+r*self.eta_nl(r)*self.h3_n_l(r))
 
     def F4_n_l(self):
-        return int.quad(self.F4_n_l_func, min, self.star.R1)[0]
+        return int.quad(self.f4_n_l_func, min, self.star.R1)[0]
 
     def H_n_0_n_0(self):
         return self.A_l()*(2*self.l+1)/(4*np.pi*self.N())*((self.F1_n_l()+self.F2_n_l()+self.F3_n_l())/self.sigma_n**2+self.F4_n_l())
+        #return (2 * self.l + 1) / (4 * np.pi * self.N()) * ((self.F1_n_l() + self.F2_n_l() + self.F3_n_l()) / self.sigma_n ** 2 + self.F4_n_l())
 
 
 primary = stellar_model('/Users/thomas/MESA/mesa-r12115/star/test_suite/1.5M_with_diffusion/LOGS/profile4.data')
@@ -272,22 +278,33 @@ x_f = np.linspace(np.min(x), np.max(x), 2000)
 #    y.append(primary_10_2.phi_mark_n_l(i))
 #plt.plot(x, y, 'ro')
 fig, ax = plt.subplots(2,1)
-implemented = primary_10_2.F2_n_l_func(x_f)
-expected = 0*x_f
+try:
+    implemented = primary_10_2.f4_n_l_func(x_f)
+except ValueError:
+    implemented = []
+    for k in range(len(x_f)):
+        implemented.append(primary_10_2.f4_n_l_func(x_f[k]))
+expected = 175/32*x_f**4
+
 
 ax[0].plot(x_f,implemented , 'ko')
 ax[0].plot(x_f, expected, 'r-')
 ax[1].plot(x_f,expected -  implemented, 'r-')
 plt.show()
 
-print(primary_10_2.F2_n_l())
-print(4*np.pi/3*35/16*primary.R1**4)
+
+
+#print(primary_10_2.F2_n_l())
+#print(35/12*primary.R1**5*np.pi)
 #plt.plot(x_f, primary_10_2.g1_n_l(x_f), 'g-')
 #plt.show()
 
 #print(primary_10_2.sigma_n)
 #print(primary_10_2.A_l())
-#result = primary_10_2.H_n_0_n_0()
+result = primary_10_2.H_n_0_n_0()
 #print(result, result / (65/28))
+print(result)
+print(325/(32*np.pi)*primary_10_2.A_l(), 65/28)
+print(primary_10_2.A_l())
 
 

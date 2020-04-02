@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import lightkurve as lk
 
 print(plt.rcParams)
-plt.rcParams.update({'font.size': 15, 'xtick.labelsize': 'small', 'ytick.labelsize': 'small',})
+#plt.rcParams.update({'font.size': 15, 'xtick.labelsize': 'small', 'ytick.labelsize': 'small',})
 dir = 'paper_plots/'
 figsize1 = (10,5)
 figsize_onecolumn = (15,7.5)
@@ -157,7 +157,7 @@ if False or do_all:
 
 #### Mail #####
 
-if True:
+if False:
     fig, ax = plt.subplots(3,1, figsize = figsize1, dpi = dpi)
     data = np.loadtxt('endurance/' + 'RS_Cha_lightcurve.txt').T
     time = data[0]
@@ -187,3 +187,268 @@ if True:
     plt.tight_layout(h_pad=0, w_pad=0)
 
     plt.savefig(dir + 'mail.png', bbox_inches = 0)
+
+
+def load_weird_csv(name):
+    data = np.loadtxt(f'endurance/alecian_data/{name}', dtype=np.str, delimiter=';', ).T
+    result1 = []
+    for s in data[0]:
+        result1.append(float(s.strip().replace(',', '.')))
+    result2 = []
+    for s in data[1]:
+        result2.append(float(s.strip().replace(',', '.')))
+    return np.array([result1, result2])
+
+def get_lfs_l0(data):
+    x_vals = data[0]
+    return np.mean(x_vals[1:]-x_vals[0:-1])/11.57407407
+
+def get_lfs_l1(data):
+    x_vals = data[0][1::3]
+    return np.mean(x_vals[1:]-x_vals[0:-1])/11.57407407
+
+def load_results(path: str):
+    """
+    Loads the pandas dataframes from the results file
+    :param path: exact path of the results file
+    :return: 3 pandas dataframes, settings, statistics and results
+    """
+    import os
+    from pandas import read_csv
+    from io import StringIO
+    from uncertainties import ufloat_fromstr
+    if not os.path.exists(path) or not path.endswith("result.csv"):
+        raise IOError("You need to provide the exact path to the results file")
+
+    with open(path, 'r') as f:
+        content = f.read()
+
+    settings = read_csv(StringIO(content.split("\n\n")[0]), skiprows=1)
+    statistics = read_csv(StringIO(content.split("\n\n")[1]), skiprows=2)
+    results = read_csv(StringIO(content.split("\n\n")[2]), skiprows=2,
+                       converters={'frequency': ufloat_fromstr,
+                                   'amp': ufloat_fromstr,
+                                   'phase': ufloat_fromstr})
+    return settings, statistics, results
+
+if False:
+    l0_modes_secondary = load_weird_csv('l0_modes_secondary.csv')
+    l0_modes_primary = load_weird_csv('l0_modes_primary.csv')
+    l1_modes_secondary = load_weird_csv('l1_modes_secondary.csv')
+    l1_modes_primary = load_weird_csv('l1_modes_primary.csv')
+    lfs_l0_primary =  get_lfs_l0(l0_modes_primary)
+    lfs_l0_secondary =  get_lfs_l0(l0_modes_secondary)
+    lfs_l1_primary =  get_lfs_l1(l1_modes_primary)
+    lfs_l1_secondary =  get_lfs_l1(l1_modes_secondary)
+    data = np.loadtxt('endurance/' + 'Removed_Binary_plus_savgol_from_original.txt').T
+    time = data[0]
+    flux = data[1]
+    rl = 1/(time[-1]-time[0])
+    settings, statistics, results = load_results('endurance/Removed_Binary_plus_savgol_from_original/data/result.csv')
+    period = 1.66987725
+    fs = results['frequency'].values
+    amps = results['amp'].values
+    snrs = results['snr'].values
+    phis = results['phase'].values
+    freqs = []
+    amp = []
+    freqs_b = []
+    amp_b = []
+    freqs_la = []
+    amp_la = []
+    for i in range(len(fs)):
+        if snrs[i] > 4 and not  ((2*rl > fs[i].n % (1/period)) or (fs[i].n % (1/period) >(1/period)-2*rl)) and amps[i].n > 0.0002:
+            freqs.append(fs[i].n)
+            amp.append(amps[i].n)
+        elif snrs[i] > 4 and not  ((2*rl > fs[i].n % (1/period)) or (fs[i].n % (1/period) >(1/period)-2*rl)) :
+            freqs_la.append(fs[i].n)
+            amp_la.append(amps[i].n)
+        elif snrs[i] > 4:
+            freqs_b.append(fs[i].n)
+            amp_b.append(amps[i].n)
+
+    #plt.plot(np.array(freqs)%(1/period), freqs, 'ko')
+    lc = lk.LightCurve(time, flux).to_periodogram()
+    plt.plot(lc.frequency, lc.power, 'k-')
+    for f in range(len(freqs)):
+        plt.plot([freqs[f], freqs[f]], [0, amp[f]], 'r-')
+    for f in range(len(freqs_b)):
+        plt.plot([freqs_b[f], freqs_b[f]], [0, amp_b[f]], 'r--')
+    plt.show()
+    plt.close()
+    #weird = lk.LightCurve(sorted(freqs), np.ones(len(freqs))).to_periodogram()
+    #plt.plot(weird.frequency, weird.power, 'k-')
+    print(lfs_l0_primary, lfs_l0_secondary, lfs_l1_primary, lfs_l1_secondary)
+    count = 0
+    f_sec = [11.074, 11.624, 12.7956]
+    from tqdm import tqdm
+    for shit in tqdm(np.linspace(3.5, 4.5, 500)):
+        fig, ax = plt.subplots()
+        ax.plot(np.array(freqs)%shit, freqs, 'ro', markersize = 10,label = 'Amp >= 0.0002')
+        ax.plot(np.array(f_sec)%shit, f_sec, 'b', markersize = 8,label = 'secondary')
+        lsfhj = ax.scatter(np.array(freqs_la)%shit, freqs_la, marker = 'o', color = 'k', s= 10,label = 'Amp < 0.0002')
+        ax.set_xlabel('Frequency mod ' + str(shit)[:5] + '$d^{-1}$')
+        ax.set_ylabel('Frequency $d^{-1}$')
+        plt.tight_layout()
+        lsfhj.set_facecolor('none')
+        ax.legend(loc = 3)
+        #fig.canvas.draw()
+        #plt.pause(0.2)
+        #ax.clear()
+        plt.savefig(dir + '/video/%03d.png' %count, bbox_inches=0)
+        count += 1
+        plt.close()
+
+    plt.show()
+
+if True:
+    R1 = 2.15*696340
+    R2 = 2.36*696340
+
+    vsin1 = 68
+    vsin2 = 72
+
+    i = 83.4
+
+    u1 = 2*np.pi * R1
+    u2 = 2*np.pi * R2
+    per1 = u1/vsin1/3600/24/np.sin(i)
+    per2 = u2/vsin2/3600/24/np.sin(i)
+    print(per1, per2)
+
+
+
+if False:
+    freq = 1/1.66987725
+    period = 1.66987725
+    data = np.loadtxt('endurance/' + 'RS_Cha_lightcurve.txt').T
+    time = data[0]
+    flux = data[1]
+    data2 = np.loadtxt('endurance/' + 'Removed_Binary_plus_savgol_from_original.txt').T
+    time2 = data2[0]
+    flux2 = data2[1]
+    data3 = np.loadtxt('endurance/' + 'Removed_Pulsations_from_first_run_new_teff50/binary_model.txt').T
+    time3 = data3[0]
+    flux3 = data3[1]
+    ind = np.where(np.logical_and(abs(time % period / period - 0.3) >= 0.1, abs(time % period / period - 0.8) >= 0.1))
+    pdg_orig = lk.LightCurve(time, flux).to_periodogram()
+    pdg_it1 = lk.LightCurve(time2, flux2).to_periodogram()
+    pdg_it2 = lk.LightCurve(time3, flux - flux3).to_periodogram()
+    pdg_ooe = lk.LightCurve(time2[ind], flux2[ind]).to_periodogram()
+    pdg_ooe2 = lk.LightCurve(time2[ind], flux[ind]-flux3[ind]).to_periodogram()
+    fig = plt.figure(constrained_layout=True,  figsize = figsize1, dpi = dpi)
+    gs = fig.add_gridspec(3, 3)
+    ax00 = fig.add_subplot(gs[0, :-1])
+    ax01 = fig.add_subplot(gs[1, :-1])
+    ax02 = fig.add_subplot(gs[2, :-1])
+    ax10 = fig.add_subplot(gs[0, -1:])
+    ax11 = fig.add_subplot(gs[1, -1:])
+    ax12 = fig.add_subplot(gs[2, -1:])
+    ax00.plot(pdg_orig.frequency, pdg_orig.power, 'k-', lw = 0.5)
+    ax01.plot(pdg_it1.frequency, pdg_it1.power, 'k-', lw = 0.5)
+    ax02.plot(pdg_ooe.frequency, pdg_ooe.power, 'k-', lw = 0.5)
+    ax10.plot(time%period/period, flux, 'ko', ms = 0.25)
+    ax11.plot(time%period/period, flux2, 'ko', ms = 0.25)
+    ax12.plot(time[ind]%period/period, flux2[ind], 'ko', ms = 0.25)
+    for a in [ax00, ax01, ax02]:
+        a.set_xlabel('frequency $d^{-1}$')
+        a.set_ylabel('power')
+        a.set_xlim(0, 35)
+        for i in range(80):
+            a.plot([i*freq, i*freq], [0, a.set_ylim()[1]], 'b--', lw = 0.25)
+    for a in [ax10, ax11, ax12]:
+        a.set_xlabel('Phase')
+        a.set_ylabel('flux')
+    plt.tight_layout(h_pad=0, w_pad=0)
+    plt.savefig(dir + '/mail2_amplitude_spectra.png', bbox_inches=0)
+    plt.show()
+
+if False:
+    freq = 1/1.66987725
+    period = 1.66987725
+    data2 = np.loadtxt('endurance/' + 'Removed_Binary_plus_savgol_from_original.txt').T
+    time2 = data2[0]
+    flux2 = data2[1]
+    pdg_it1 = lk.LightCurve(time2, flux2).to_periodogram()
+    settings, statistics, results = load_results('endurance/Removed_Binary_plus_savgol_from_original/data/result.csv')
+    fs = results['frequency'].values
+    amps = results['amp'].values
+    snrs = results['snr'].values
+    phis = results['phase'].values
+    freqs_f1 = []
+    amp_f1 = []
+    freqs_f2 = []
+    amp_f2 = []
+    freqs_f3 = []
+    amp_f3 = []
+    rl = 1/(time2[-1]-time2[0])
+    for i in range(len(fs)):
+        if snrs[i] > 4 and not (
+                (2 * rl > fs[i].n % (1 / period)) or (fs[i].n % (1 / period) > (1 / period) - 2 * rl)):
+            if  (rl + 11.0704 % (1 / period)  >= fs[i].n % (1 / period) >= 11.0704 % (1 / period)-rl):
+                #print( rl + 11.0704 % (1 / period), fs[i].n % (1 / period),11.0704 % (1 / period)-rl, fs[i].n)
+                freqs_f1.append(fs[i].n)
+                amp_f1.append(amps[i].n)
+            elif (rl + 11.624 % (1 / period)  >= fs[i].n % (1 / period) >= 11.624 % (1 / period)-rl):
+                freqs_f2.append(fs[i].n)
+                amp_f2.append(amps[i].n)
+            elif (rl + 12.7956 % (1 / period)  >= fs[i].n % (1 / period) >= 12.7956 % (1 / period)-rl):
+                freqs_f3.append(fs[i].n)
+                amp_f3.append(amps[i].n)
+
+
+    fig , ax= plt.subplots( figsize = figsize1, dpi = dpi)
+    ax.plot(pdg_it1.frequency, pdg_it1.power, 'k-', lw = 0.5)
+    ax.set_xlabel('frequency $d^{-1}$')
+    ax.set_ylabel('power')
+    ax.set_xlim(8, 15.5)
+    for i in range(80):
+        ax.plot([i*freq, i*freq], [0, ax.set_ylim()[1]], 'b--', lw = 0.25)
+    for f in range(len(freqs_f1)):
+        ax.plot([freqs_f1[f],freqs_f1[f]], [0, amp_f1[f]], 'b-', lw = 1)
+    for f in range(len(freqs_f2)):
+        ax.plot([freqs_f2[f],freqs_f2[f]], [0, amp_f2[f]], 'r-', lw=1)
+    for f in range(len(freqs_f3)):
+        ax.plot([freqs_f3[f],freqs_f3[f]], [0, amp_f3[f]], 'g-', lw=1)
+    ax.annotate('f2', (11.0704, 0.0016), (11.304, 0.0015), arrowprops=dict(arrowstyle= '-', facecolor='black', lw = 0.75))
+    ax.annotate('f1', (11.624, 0.0016), (11.904, 0.0015), arrowprops=dict(arrowstyle= '-', facecolor='black', lw = 0.75))
+    ax.annotate('f3', (12.7956, 0.0015), (13.0956, 0.0014), arrowprops=dict(arrowstyle= '-', facecolor='black', lw = 0.75))
+    for f in range(len(freqs_f1)):
+        if amp_f1[f] < 0.0014:
+            num = int(np.around(((freqs_f1[f] - 11.0704) / freq)))
+            print(num)
+            if num > 0:
+                sig = '+'
+            else:
+                sig = '-'
+            ax.annotate(f'f2{sig}{abs(num)}' + '$\Omega$', (freqs_f1[f], 0), (freqs_f1[f] + 0.15, -0.000025),
+                        arrowprops=dict(arrowstyle='-', facecolor='black', lw=0.5), fontsize=(5))
+    for f in range(len(freqs_f2)):
+        if amp_f2[f] < 0.0014:
+            num = int(np.around((freqs_f2[f] - 11.624) / freq))
+            print(num)
+            if num > 0:
+                sig = '+'
+            else:
+                sig = '-'
+            ax.annotate(f'f1{sig}{abs(num)}' + '$\Omega$', (freqs_f2[f], amp_f2[f]), (freqs_f2[f] - 0.5, 0.0004),
+                        arrowprops=dict(arrowstyle='-', facecolor='black', lw=0.5), fontsize=(5))
+
+    plt.savefig(dir + '/mail2_splitted.png', bbox_inches=0)
+    plt.show()
+
+
+settings, statistics, results = load_results('endurance/Removed_Binary_plus_savgol_from_original/data/result.csv')
+fs = results['frequency'].values
+amps = results['amp'].values
+snrs = results['snr'].values
+phis = results['phase'].values
+freqs = []
+for f in fs:
+    freqs.append(f.n)
+freqs = np.sort(freqs)
+print(freqs)
+difs = freqs[1:]-freqs[:-1]
+
+plt.hist(difs, bins = 500)
+plt.show()
