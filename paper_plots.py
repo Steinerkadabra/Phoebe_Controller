@@ -10,6 +10,7 @@ figsize_onecolumn = (15,7.5)
 
 dpi = 200
 do_all = False
+do_mail = False
 
 
 
@@ -157,7 +158,7 @@ if False or do_all:
 
 #### Mail #####
 
-if False:
+if False or do_mail:
     fig, ax = plt.subplots(3,1, figsize = figsize1, dpi = dpi)
     data = np.loadtxt('endurance/' + 'RS_Cha_lightcurve.txt').T
     time = data[0]
@@ -231,7 +232,8 @@ def load_results(path: str):
                                    'phase': ufloat_fromstr})
     return settings, statistics, results
 
-if False:
+
+if False or do_mail:
     l0_modes_secondary = load_weird_csv('l0_modes_secondary.csv')
     l0_modes_primary = load_weird_csv('l0_modes_primary.csv')
     l1_modes_secondary = load_weird_csv('l1_modes_secondary.csv')
@@ -318,7 +320,7 @@ if True:
 
 
 
-if False:
+if False or do_mail:
     freq = 1/1.66987725
     period = 1.66987725
     data = np.loadtxt('endurance/' + 'RS_Cha_lightcurve.txt').T
@@ -363,7 +365,7 @@ if False:
     plt.savefig(dir + '/mail2_amplitude_spectra.png', bbox_inches=0)
     plt.show()
 
-if False:
+if False or do_mail:
     freq = 1/1.66987725
     period = 1.66987725
     data2 = np.loadtxt('endurance/' + 'Removed_Binary_plus_savgol_from_original.txt').T
@@ -438,17 +440,3 @@ if False:
     plt.show()
 
 
-settings, statistics, results = load_results('endurance/Removed_Binary_plus_savgol_from_original/data/result.csv')
-fs = results['frequency'].values
-amps = results['amp'].values
-snrs = results['snr'].values
-phis = results['phase'].values
-freqs = []
-for f in fs:
-    freqs.append(f.n)
-freqs = np.sort(freqs)
-print(freqs)
-difs = freqs[1:]-freqs[:-1]
-
-plt.hist(difs, bins = 500)
-plt.show()
