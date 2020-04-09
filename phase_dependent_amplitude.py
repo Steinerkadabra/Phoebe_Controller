@@ -106,7 +106,7 @@ def simulate(run):
     f.close()
 
 def simulate_multiple():
-    n = 6
+    n = 1
     pool = mp.Pool(processes=n)
     data = np.loadtxt('data/' + 'Final_Pulsation_LC.txt').T
     time = data[0][:20000]
