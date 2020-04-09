@@ -138,10 +138,10 @@ if False or do_all:
 
     fig, ax = plt.subplots(figsize = figsize1, dpi = dpi)
 
-    o_p = np.array(o_p)*(0.5 * period)
-    c_p = np.array(c_p)*(0.5 * period)
-    o_s = np.array(o_s)*(0.5 * period)
-    c_s = np.array(c_s)*(0.5 * period)
+    o_p = np.array(o_p)*(0.5 * period)*24*3600
+    c_p = np.array(c_p)*(0.5 * period)*24*3600
+    o_s = np.array(o_s)*(0.5 * period)*24*3600
+    c_s = np.array(c_s)*(0.5 * period)*24*3600
     ax.plot(o_p, np.array(o_p) - np.array(c_p), 'go')
     ax.plot(o_s, np.array(o_s) - np.array(c_s), 'b^')
     ax.plot(ax.set_xlim(), [0.0, 0.0], 'k--')
@@ -151,9 +151,117 @@ if False or do_all:
     ax.plot(o_s, line(o_s, *popt_s), 'b-')
 
     ax.set_xlabel('Time - 2457000 [BTJD days]')
-    ax.set_ylabel('O-C days')
+    ax.set_ylabel('O-C seconds')
     plt.tight_layout()
-    plt.savefig(dir + 'Figure3_O_C_diagram.pdf', bbox_inches = 0)
+    plt.savefig(dir + 'Figure3_O_C_diagram_seconds.pdf', bbox_inches = 0)
+
+
+def binning(time, mag, period):
+    time = (time%period)/period# (1/0.5988495842998753)*0.5988495842998753
+    bins = []
+    means = []
+    sds = []
+    num = 350
+    bins.append(0)
+    ind = np.where(np.logical_and(time >= 0, time <= 0.5 / num))
+    means.append(np.mean(mag[ind]))
+    sds.append(np.std(mag[ind]))
+    for i in range(num - 1):
+        ind = np.where(np.logical_and(time >= (i + 0.5) / num, time <= (i + 1.5) / num))
+        if ind[0].size > 0:
+            bins.append((i + 1) / num)
+            means.append(np.mean(mag[ind]))
+            sds.append(np.std(mag[ind]))
+    bins.append(1)
+    ind = np.where(np.logical_and(time >= (num - 0.5) / num, time <= 1))
+    means.append(np.mean(mag[ind]))
+    sds.append(np.std(mag[ind]))
+    return bins, means, sds
+
+if False or do_all:
+    period = 1.66987725
+    data = np.loadtxt('endurance_data/' + 'RS_Cha_lightcurve.txt').T
+    time = data[0]
+    flux = data[1]
+    bins, means, sds = binning(time, flux, period)
+    data = np.loadtxt('endurance_data/' + 'Removed_Pulsations_from_first_run_irrad_gravbol/binary_model.txt').T
+    time_mod = data[0]
+    flux_mod = data[1]
+    data = np.loadtxt('endurance_data/' + 'Fourier_residual_model.txt').T
+    time_res = data[0]
+    flux_res = data[1]
+    phase = time_mod%period/period
+    sort = np.argsort(phase)
+    rbins, rmeans, rsds = binning(time, flux-flux_mod, period)
+    rrbins, rrmeans, rrsds = binning(time, flux-flux_mod - flux_res, period)
+    fig= plt.figure(constrained_layout=True, figsize = figsize1, dpi = dpi)
+    gs = fig.add_gridspec(9, 1)
+    ax2 = fig.add_subplot(gs[0:-4, 0])
+    ax3 = fig.add_subplot(gs[-4:-2, 0])
+    ax4 = fig.add_subplot(gs[-2:, 0])
+    ax2.plot(bins, means, 'ko', ms = 2)
+    ax2.plot(phase[sort], flux_mod[sort], 'r-', lw = 0.75)
+    ax3.plot(rbins, rmeans, 'ko', ms = 2)
+    ax4.plot(rrbins, rrmeans, 'ko', ms = 2)
+    ax2.set_xticks([])
+    ax3.set_ylim([-0.004, 0.0035])
+    ax4.set_ylim([-0.004, 0.0035])
+    ax3.set_yticks([-0.002, 0, 0.002])
+    ax4.set_yticks([-0.002, 0, 0.002])
+    ax4.set_xlabel('Phase')
+    ax2.set_ylabel('flux')
+    ax3.set_ylabel('flux')
+    ax4.set_ylabel('flux')
+    plt.tight_layout(h_pad=0, w_pad=0)
+    plt.subplots_adjust(wspace=0, hspace=0)
+    plt.savefig(dir + '/Figure4_binary_modelling.pdf', bbox_inches=0)
+    #plt.show()
+
+
+
+if True or do_all:
+    freq = 1/1.66987725
+    period = 1.66987725
+    data = np.loadtxt('endurance/' + 'RS_Cha_lightcurve.txt').T
+    time = data[0]
+    flux = data[1]
+    data2 = np.loadtxt('endurance/' + 'Final_Pulsation_LC.txt').T
+    time2 = data2[0]
+    flux2 = data2[1]
+    ind = np.where(np.logical_and(abs(time % period / period - 0.3) >= 0.1, abs(time % period / period - 0.8) >= 0.1))
+    pdg_orig = lk.LightCurve(time, flux).to_periodogram()
+    pdg_it1 = lk.LightCurve(time2, flux2).to_periodogram()
+    pdg_ooe = lk.LightCurve(time2[ind], flux2[ind]).to_periodogram()
+    fig = plt.figure(constrained_layout=True,  figsize = figsize_onecolumn, dpi = dpi)
+    gs = fig.add_gridspec(3, 3)
+    ax00 = fig.add_subplot(gs[0, :-1])
+    ax01 = fig.add_subplot(gs[1, :-1])
+    ax02 = fig.add_subplot(gs[2, :-1])
+    ax10 = fig.add_subplot(gs[0, -1:])
+    ax11 = fig.add_subplot(gs[1, -1:])
+    ax12 = fig.add_subplot(gs[2, -1:])
+    ax00.plot(pdg_orig.frequency, pdg_orig.power, 'k-', lw = 0.5, rasterized=True)
+    ax01.plot(pdg_it1.frequency, pdg_it1.power, 'k-', lw = 0.5, rasterized=True)
+    ax02.plot(pdg_ooe.frequency, pdg_ooe.power, 'k-', lw = 0.5, rasterized=True)
+    ax10.plot(time%period/period, flux, 'ko', ms = 0.25, rasterized=True)
+    ax11.plot(time%period/period, flux2, 'ko', ms = 0.25, rasterized=True)
+    ax12.plot(time[ind]%period/period, flux2[ind], 'ko', ms = 0.25, rasterized=True)
+    for a in [ax00, ax01, ax02]:
+        a.set_xlabel('frequency $d^{-1}$')
+        a.set_ylabel('power')
+        a.set_xlim(0, 35)
+        for i in range(80):
+            a.plot([i*freq, i*freq], [0, a.set_ylim()[1]], 'b--', lw = 0.25)
+    for a in [ax10, ax11, ax12]:
+        a.set_xlabel('Phase')
+        a.set_ylabel('flux')
+    for a in [ ax11, ax12]:
+        a.set_yticks([-0.01, 0, 0.01])
+    ax11.set_ylim(ax12.set_ylim())
+    plt.tight_layout(h_pad=0, w_pad=0)
+    plt.savefig(dir + '/Figure5_amplitude_spectra.pdf', bbox_inches=0)
+    plt.show()
+
 
 
 #### Mail #####

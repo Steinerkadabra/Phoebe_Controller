@@ -326,165 +326,60 @@ def generate_ooe_lc():
     np.savetxt('endurance/iteration1_removed_binary_savgol.txt', np.array([time[ooe],mod_flux[ooe]-flux[ooe]- smooth -np.mean(mod_flux[ooe]-flux[ooe]- smooth)]).T)
     plt.show()
 
-#generate_ooe_lc()
+
+def final_results_look():
+
+    freq = 1/1.66987725
+    period = 1.66987725
+    data = np.loadtxt('endurance_data2/' + 'Final_Pulsation_LC.txt').T
+    time = data[0]
+    flux = data[1]
+    pdg = lk.LightCurve(time, flux).to_periodogram()
+    settings, statistics, results = load_results('endurance_data2/Final_Pulsation_LC/data/result.csv')
+    fs = results['frequency'].values
+    amps = results['amp'].values
+    snrs = results['snr'].values
+    phis = results['phase'].values
+    freqs_ha= []
+    freqs_sig = []
+    freqs_ns = []
+    for i in range(len(fs)):
+        if amps[i]>=0.000165 and snrs[i]>4:
+            freqs_ha.append(mode(fs[i].n, amps[i].n, phis[i].n, snrs[i]))
+        elif snrs[i]>=4:
+            freqs_sig.append(mode(fs[i].n, amps[i].n, phis[i].n, snrs[i]))
+        else:
+            freqs_ns.append(mode(fs[i].n, amps[i].n, phis[i].n, snrs[i]))
+    for f in freqs_ha:
+        print(f.f, f.amp, f.phase)
+    for f in freqs_sig:
+        print(f.f, f.amp, f.phase)
+    print(len(freqs_ha))
+    print(len(freqs_sig))
+    print(len(freqs_ns))
+    flux_mod = np.zeros(len(time))
+    for f in freqs_ha:
+        flux_mod = flux_mod + fourier_model(time, [f.f], [f.amp], [f.phase])
+    for f in freqs_sig:
+        flux_mod = flux_mod + fourier_model(time, [f.f], [f.amp], [f.phase])
 
 
-''' 
-###conformation_plot different analysis####
-ftr, fb, frl = get_freqs_to_remove('endurance_data/iteration1_removed_binary_savgol/')
-ftr_sp, fb_sp, frl_sp = get_freqs_to_remove('endurance_data/iteration1_removed_binary_savgol_1/')
-plt.close()
-
-period_res = np.loadtxt('iteration1_removed_binary_savgol_period/frequencies.per', usecols=[1,2,3]).T
-
-hjksfh = np.loadtxt('iteration1_removed_binary_savgol_period/residuals.dat').T
-fs = period_res[0]
-amps = period_res[1]
-phis = period_res[2]
-freqs_period = []
-for i in range(len(fs)):
-    freqs_period.append(mode(fs[i], amps[i], phis[i], 11))
-
-data = np.loadtxt('endurance_data/iteration1_removed_binary_savgol.txt').T
-time = data[0]
-flux = data[1]
-
-flux_mod = np.zeros(len(time))
-for f in ftr:
-    flux_mod = flux_mod + fourier_model(time, [f.f], [f.amp], [f.phase])
-    print(f.f,  f.amp, f.phase)
-for f in fb:
-    flux_mod = flux_mod + fourier_model(time, [f.f], [f.amp], [f.phase])
-    print(f.f,  f.amp, f.phase)
-for f in frl:
-    flux_mod = flux_mod + fourier_model(time, [f.f], [f.amp], [f.phase])
-    print(f.f,  f.amp, f.phase)
-
-flux_mod_sp = np.zeros(len(time))
-for f in ftr_sp:
-    flux_mod_sp = flux_mod_sp + fourier_model(time, [f.f], [f.amp], [f.phase])
-for f in fb_sp:
-    flux_mod_sp = flux_mod_sp + fourier_model(time, [f.f], [f.amp], [f.phase])
-for f in frl_sp:
-    flux_mod_sp = flux_mod_sp + fourier_model(time, [f.f], [f.amp], [f.phase])
-
-flux_mod_period = np.zeros(len(time))
-for f in freqs_period:
-    flux_mod_period = flux_mod_period + fourier_model(time, [f.f], [f.amp], [f.phase])
-
-plt.close()
-fig, ax = plt.subplots(3,1, figsize=(15,8))
-ax[0].plot(time, flux, 'ko', ms = 0.75)
-ax[0].plot(time, flux_mod, 'r-', lw = 0.75)
-ax[0].plot(time, flux_mod_sp, 'b-', lw = 0.75)
-ax[0].plot(time, flux_mod_period, 'g-', lw = 0.75)
-ax[1].plot(time, flux-flux_mod, 'ro', ms = 0.7, alpha = 0.5)
-ax[1].plot(time, flux-flux_mod_sp, 'bo', ms = 0.7, alpha = 0.5)
-ax[1].plot(time, flux-flux_mod_period, 'go', ms = 0.7, alpha = 0.5)
-res = lk.LightCurve(time, flux-flux_mod)
-res_sp = lk.LightCurve(time, flux-flux_mod_sp)
-res_period = lk.LightCurve(time, flux-flux_mod_period)
-orig = lk.LightCurve(time, flux)
-pdg = res.to_periodogram()
-pdg_sp = res_sp.to_periodogram()
-pdg_period = res_period.to_periodogram()
-pdg_orig = orig.to_periodogram()
-
-ax[2].plot(pdg_orig.frequency, pdg_orig.power, 'k-')
-ax[2].plot(pdg.frequency, pdg.power, 'r--')
-ax[2].plot(pdg_sp.frequency, pdg_sp.power, 'b-.')
-ax[2].plot(pdg_period.frequency, pdg_period.power, 'g:')
-
-ax[0].set_ylabel('flux')
-ax[1].set_ylabel('flux')
-ax[2].set_ylabel('flux')
-ax[0].set_xlabel('Time - 2457000 [BTJD days]')
-ax[1].set_xlabel('Time - 2457000 [BTJD days]')
-ax[2].set_xlabel('frequency')
-ax[0].set_xlim(1612.2, 1623.8)
-ax[1].set_xlim(1612.2, 1623.8)
-ax[2].set_xlim(0, 40)
-
-plt.tight_layout(h_pad = 0, w_pad=0)
-#plt.savefig('iteration1_removed_binary_savgol_period/compare_analysis.png')
-plt.show()
-'''
+    '''
+    fig, ax = plt.subplots(2,1, figsize=(12,8))
+    ax[0].plot(time, flux, 'ko', ms = 0.75)
+    ax[0].plot(time, flux_mod,'r-')
+    ax[1].plot(pdg.frequency, pdg.power, 'k-', lw = 0.75)
+    for f in freqs_ha:
+        ax[1].plot([f.f, f.f], [0, f.amp], 'g-')
+    for f in freqs_sig:
+        ax[1].plot([f.f, f.f], [0, f.amp], 'r-')
+    for f in freqs_ns:
+        ax[1].plot([f.f, f.f], [0, f.amp], 'b--')
+    plt.show()
+    '''
 
 
-'''
-period_res = np.loadtxt('endurance/iteration1_removed_binary_out_of_eclipse_period04_result/period04_out_of_eclipse_frequencies.per', usecols=[1,2,3]).T
-fs = period_res[0]
-amps = period_res[1]
-phis = period_res[2]
-snrs = [15.05000, 19.73500, 20.19227, 24.86000, 20.82400, 17.52000, 10.59000, 13.62300, 7.29334, 6.84200, 9.96000,
-        8.32000, 7.68900, 5.21000, 13.80000, 7.76500, 8.81900, 6.82000, 10.09000, 8.39000, 5.27000, 8.10000,
-        5.69000, 9.50900, 7.42570]
-freqs_init = []
-for i in range(len(fs)):
-    if snrs[i] > 3.8:
-        freqs_init.append(mode(fs[i], amps[i], phis[i], snrs[i]))
-
-
-freqs_binary = []
-freqs_to_remove = []
-for f in freqs_init:
-    if  ((0.025 > f.f % (0.5988495842998753) and f.f < 15)  or  (f.f % (0.5988495842998753)  >(0.5988495842998753)-0.025 and f.f < 15)) and f.f> 0.4:
-        freqs_binary.append(f)
-    else :
-        freqs_to_remove.append(f)
-
-
-fig, ax = plt.subplots(3,1)
-dataooe = np.loadtxt('endurance/' + 'iteration1_removed_binary_out_of_eclipse.txt').T
-timeooe = dataooe[0]
-fluxooe = dataooe[1]
-flux_mod = np.zeros(len(timeooe))
-for f in freqs_binary:
-    print(f.f, f.amp, f.phase)
-
-print('######')
-for f in freqs_to_remove:
-    print(f.f)
-#for f in freqs_binary:
-#    flux_mod = flux_mod + fourier_model(timeooe, [f.f], [f.amp], [f.phase])
-
-ax[0].plot(timeooe, fluxooe, 'ko', ms =0.75)
-ax[0].plot(timeooe, flux_mod, 'r-')
-for f in freqs_to_remove:
-    flux_mod = flux_mod + fourier_model(timeooe, [f.f], [f.amp], [f.phase])
-ax[0].plot(timeooe, flux_mod, 'b-', lw = 0.5)
-ax[1].plot(timeooe, fluxooe-flux_mod, 'ko', ms  = 0.75)
-
-data = np.loadtxt('endurance/' + 'RS_Cha_lightcurve.txt').T
-time = data[0]#(data[0]% (1/0.5988495842998753))*0.5988495842998753
-flux = data[1]
-
-flux_mod = np.zeros(len(time))
-for f in freqs_binary:
-    flux_mod = flux_mod + fourier_model(time, [f.f], [f.amp], [f.phase])
-
-
-ax[2].plot(time, flux, 'ro', ms = 0.25)
-ax[2].plot(time, flux+flux_mod + 0.05, 'go', ms = 0.25)
-
-ftr, fb, frl = get_freqs_to_remove('endurance/RS_Cha_minus_phoebe_minus_binary_mutiples/')
-
-
-for f in ftr:
-    flux_mod = flux_mod + fourier_model(time, [f.f], [f.amp], [f.phase])
-
-for f in frl:
-    flux_mod = flux_mod + fourier_model(time, [f.f], [f.amp], [f.phase])
-
-for f in fb:
-    flux_mod = flux_mod + fourier_model(time, [f.f], [f.amp], [f.phase])
-
-print(flux_mod)
-datab = np.loadtxt('endurance/' + 'iteration2/binary_model.txt').T
-timeb = datab[0]#(data[0]% (1/0.5988495842998753))*0.5988495842998753
-fluxb = datab[1]
-ax[2].plot(time, flux+flux_mod - 0.05, 'bo', ms = 0.25)
-ax[2].plot(time, fluxb + 0.05, 'k-')
-
-plt.show()
-'''
+    fig, ax = plt.subplots(figsize=(12,8))
+    ax.plot(np.array([f.f for f in freqs_ha])%freq, np.array([f.f for f in freqs_ha]), 'go', ms = 5)
+    ax.plot(np.array([f.f for f in freqs_sig])%freq, np.array([f.f for f in freqs_sig]), 'ko', ms = 2.5)
+    plt.show()
