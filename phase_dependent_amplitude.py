@@ -108,7 +108,7 @@ def simulate(run):
 def simulate_multiple():
     n = 6
     pool = mp.Pool(processes=n)
-    data = np.loadtxt('endurance/' + 'Final_Pulsation_LC.txt').T
+    data = np.loadtxt('data/' + 'Final_Pulsation_LC.txt').T
     time = data[0][:20000]
     runs = []
     for i in range(n):
