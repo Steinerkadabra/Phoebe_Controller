@@ -228,7 +228,7 @@ if True or do_all:
     data2 = np.loadtxt('endurance/' + 'Final_Pulsation_LC.txt').T
     time2 = data2[0]
     flux2 = data2[1]
-    ind = np.where(np.logical_and(abs(time % period / period - 0.3) >= 0.1, abs(time % period / period - 0.8) >= 0.1))
+    ind = np.where(np.logical_and(abs(time % period / period - 0.3) >= 0.1, abs(time % period / period - 0.775) >= 0.125))
     pdg_orig = lk.LightCurve(time, flux).to_periodogram()
     pdg_it1 = lk.LightCurve(time2, flux2).to_periodogram()
     pdg_ooe = lk.LightCurve(time2[ind], flux2[ind]).to_periodogram()

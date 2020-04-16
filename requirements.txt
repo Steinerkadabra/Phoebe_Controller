@@ -2,3 +2,6 @@ phoebe
 numpy
 matplotlib
 lightkurve
+tqdm
+scipy
+uncertainties
