@@ -57,12 +57,18 @@ def _scipy_fit(lc, modes):
 
 
     try:
-        popt, pcov = curve_fit(sin_multiple, lc.time, lc.flux, p0=arr)
+        popt, pcov = curve_fit(sin_multiple, lc.time, lc.flux, p0=arr, method= 'trf')
     except RuntimeError:
         print(f"Failed to improve first {len(modes)} frequencies. Skipping fit improvement.")
         return 0
 
     perr = np.sqrt(np.diag(pcov))
+
+    Nexp = sin_multiple(lc.time, *popt)
+    r = np.array(lc.flux) - Nexp
+    chisq = np.sum(r ** 2)
+    df = len(lc.time) - 3*len(modes)
+    print("chisq =", chisq, "df =", df, 'chisq/DoF', chisq/df)
 
 
     for r, vals in zip(result,
@@ -70,7 +76,7 @@ def _scipy_fit(lc, modes):
         r.amp = vals[0]
         r.f = vals[1]
         r.phase = vals[2]
-    return result
+    return result, np.sqrt(2/len(lc.time))*0.000165
 
 def sin_multiple(x: np.ndarray, *params) -> np.ndarray:
     """
@@ -123,13 +129,13 @@ def amplitude_in_phase(time, flux, modes, period = 1.66987725, phase = 0.5, delt
     else:
         ind = np.where(np.logical_or(p >= start, p <= end))
     lc = lk.LightCurve(time[ind], flux[ind])
-    result = _scipy_fit(lc, modes)
+    result, amp_err = _scipy_fit(lc, modes)
     if result == 0:
         return modes
     for mode, mode_r in zip(modes, result):
         mode.phase_bins.append(phase)
         mode.phase_amps.append(mode_r.amp.nominal_value)
-        mode.phase_amps_.append(mode_r.amp.std_dev)
+        mode.phase_amps_.append(mode_r.amp.std_dev + amp_err)
         mode.phase_phases.append(mode_r.phase.nominal_value)
         mode.phase_phases_.append(mode_r.phase.std_dev)
     return modes
@@ -348,6 +354,7 @@ def fat_weird_thingie():
         arr.append(p[2])
         limits[0].append(-np.inf)
         limits[1].append(np.inf)
+    print(arr)
     print(limits)
     popt_p, pcov_p = curve_fit(pda_multiple, times, new_flux, p0=arr, bounds = limits)
     print('Primary')
@@ -383,8 +390,7 @@ def fat_weird_thingie():
 
 
 
-
-
+'''
 lc_file = 'endurance/Final_Pulsation_LC.txt'
 data = np.loadtxt(lc_file).T
 times = data[0]
@@ -412,3 +418,32 @@ ax[0].plot(times, flux-flux_new, 'r-')
 ax[1].plot(pdg.frequency, lk.LightCurve(times, flux).to_periodogram(minimum_frequency = 8, maximum_frequency = 40).power, 'k-')
 ax[1].plot(pdg.frequency, pdg.power, 'r-')
 plt.show()
+
+
+
+
+
+
+
+lc_file = 'endurance/Final_Pulsation_LC.txt'
+data = np.loadtxt(lc_file).T
+times = data[0]
+flux = data[1]
+
+fs = [11.0703910326469 ,11.624895962024176 ,12.79520550704062, 20.122516352277714 ,18.924907836258388,]#12.822593234768355 ,10.427356235437156 ,25.63617123640961]
+amps = [0.0016715568284938562, 0.0016435120422416158, 0.0014987863342293011,0.0009152175177519561, 0.000851788328761722, ]#0.0007491355996644594,0.0006890738769746643,0.0005867220290295697]
+
+modes = []
+for f, a in zip(fs, amps):
+    modes.append(mode(f, a, 0, 0))
+
+for p in np.linspace(0, 1, 100):
+    modes = amplitude_in_phase(times, flux, modes, phase = p)
+
+fig, ax = plt.subplots(4, figsize = (12,7))
+for i in range(3):
+    ax[i].errorbar(modes[i].phase_bins, modes[i].phase_amps, yerr=modes[i].phase_amps_, ls = '', marker = 'o', color = 'k')
+period = 1.66987725
+ax[3].plot(times%period/period, flux, 'ko', ms = 0.75)
+plt.show()
+'''

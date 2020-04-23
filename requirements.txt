@@ -5,3 +5,4 @@ lightkurve
 tqdm
 scipy
 uncertainties
+tabulate

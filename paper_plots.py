@@ -1,12 +1,18 @@
 import numpy as np
+import phase_analysis as pha
 import matplotlib.pyplot as plt
 import lightkurve as lk
+from scipy.optimize import curve_fit
+from tabulate import tabulate
 
 print(plt.rcParams)
-#plt.rcParams.update({'font.size': 15, 'xtick.labelsize': 'small', 'ytick.labelsize': 'small',})
+plt.rcParams.update({'font.size': 15, 'xtick.labelsize': 'small', 'ytick.labelsize': 'small',})
 dir = 'paper_plots/'
 figsize1 = (10,5)
 figsize_onecolumn = (15,7.5)
+
+def figsize(n):
+    return (10,5*n)
 
 dpi = 200
 do_all = False
@@ -16,7 +22,7 @@ do_mail = False
 
 ### Figure 1: lightcurve, gaps and shit ###
 if False or do_all:
-    data = np.loadtxt('endurance_data/' + 'RS_Cha_lightcurve.txt').T
+    data = np.loadtxt('endurance/' + 'RS_Cha_lightcurve.txt').T
     time = data[0]
     flux = data[1]
     fig, ax = plt.subplots(figsize = figsize1, dpi = dpi)
@@ -71,12 +77,10 @@ def line(x, a, b):
     return a * x + b
 
 if False or do_all:
-    from scipy.optimize import curve_fit
-    import lightkurve as lk
-    data = np.loadtxt('endurance_data/' + 'Removed_Pulsations_from_first_run.txt').T
+    data = np.loadtxt('endurance/' + 'Removed_Pulsations_from_first_run.txt').T
     time = data[0]
     flux = data[1]
-    data_ = np.loadtxt('endurance_data/' + 'RS_Cha_lightcurve.txt').T
+    data_ = np.loadtxt('endurance/' + 'RS_Cha_lightcurve.txt').T
     time_m = data_[0]
     flux_m = data_[1]
 
@@ -178,16 +182,17 @@ def binning(time, mag, period):
     sds.append(np.std(mag[ind]))
     return bins, means, sds
 
+### Figure 4: Result of Binary Modelling ###
 if False or do_all:
     period = 1.66987725
-    data = np.loadtxt('endurance_data/' + 'RS_Cha_lightcurve.txt').T
+    data = np.loadtxt('endurance/' + 'RS_Cha_lightcurve.txt').T
     time = data[0]
     flux = data[1]
     bins, means, sds = binning(time, flux, period)
-    data = np.loadtxt('endurance_data/' + 'Removed_Pulsations_from_first_run_irrad_gravbol/binary_model.txt').T
+    data = np.loadtxt('endurance/' + 'Removed_Pulsations_from_first_run_irrad_gravbol/binary_model.txt').T
     time_mod = data[0]
     flux_mod = data[1]
-    data = np.loadtxt('endurance_data/' + 'Fourier_residual_model.txt').T
+    data = np.loadtxt('endurance/' + 'Fourier_residual_model.txt').T
     time_res = data[0]
     flux_res = data[1]
     phase = time_mod%period/period
@@ -218,8 +223,8 @@ if False or do_all:
     #plt.show()
 
 
-
-if True or do_all:
+### Figure5: Different Amplitude Spectra ###
+if False or do_all:
     freq = 1/1.66987725
     period = 1.66987725
     data = np.loadtxt('endurance/' + 'RS_Cha_lightcurve.txt').T
@@ -246,22 +251,169 @@ if True or do_all:
     ax10.plot(time%period/period, flux, 'ko', ms = 0.25, rasterized=True)
     ax11.plot(time%period/period, flux2, 'ko', ms = 0.25, rasterized=True)
     ax12.plot(time[ind]%period/period, flux2[ind], 'ko', ms = 0.25, rasterized=True)
+    ax11.set_ylim(ax12.set_ylim())
+    ax01.set_ylim(ax02.set_ylim())
+
     for a in [ax00, ax01, ax02]:
         a.set_xlabel('frequency $d^{-1}$')
         a.set_ylabel('power')
         a.set_xlim(0, 35)
+        a.plot(a.set_xlim(), [0.000165, 0.000165], 'r:', lw = 0.25)
         for i in range(80):
             a.plot([i*freq, i*freq], [0, a.set_ylim()[1]], 'b--', lw = 0.25)
     for a in [ax10, ax11, ax12]:
         a.set_xlabel('Phase')
         a.set_ylabel('flux')
+        a.set_xlim([0,1])
     for a in [ ax11, ax12]:
         a.set_yticks([-0.01, 0, 0.01])
-    ax11.set_ylim(ax12.set_ylim())
+    from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
+    from mpl_toolkits.axes_grid1.inset_locator import mark_inset
+    ax02zoom = zoomed_inset_axes(ax02, 2, loc=2)  # zoom-factor: 2.5, location: upper-left
+    ax01zoom = zoomed_inset_axes(ax01, 2, loc=2)  # zoom-factor: 2.5, location: upper-left
+    ax02zoom.plot(pdg_ooe.frequency, pdg_ooe.power, 'k-', lw = 0.5, rasterized=True)
+    ax01zoom.plot(pdg_it1.frequency, pdg_it1.power, 'k-', lw = 0.5, rasterized=True)
+    for a in [ax02zoom, ax01zoom]:
+        a.set_xlim(1, 5)
+        a.set_ylim(0, 0.0005)
+        a.xaxis.set_visible('False')
+        a.yaxis.set_visible('False')
+        a.set_xticks([])
+        a.set_yticks([])
+        for i in range(80):
+            a.plot([i*freq, i*freq], [0, ax02zoom.set_ylim()[1]], 'b--', lw = 0.25)
+
+
+    mark_inset(ax02, ax02zoom, loc1=2, loc2=4, fc="none", ec="0.5")
+    mark_inset(ax01, ax01zoom, loc1=2, loc2=4, fc="none", ec="0.5")
+
     plt.tight_layout(h_pad=0, w_pad=0)
     plt.savefig(dir + '/Figure5_amplitude_spectra.pdf', bbox_inches=0)
-    plt.show()
+    #plt.show()
 
+### Figure6: Why use Gaussian drop in Ampplitude?###
+if False or do_all:
+    freq = 1/1.66987725
+    period = 1.66987725
+    data = np.loadtxt('endurance/' + 'RS_Cha_lightcurve.txt').T
+    time = data[0]
+    flux = data[1]
+    data2 = np.loadtxt('endurance/' + 'Final_Pulsation_LC.txt').T
+    time2 = data2[0]
+    flux2 = data2[1]
+    fs = [11.0703910326469, 11.624895962024176, 12.79520550704062, 20.122516352277714,
+          18.924907836258388, ]
+    amps = [0.0016715568284938562, 0.0016435120422416158, 0.0014987863342293011, 0.0009152175177519561,
+            0.000851788328761722, ]
+    modes = []
+    for f, a in zip(fs, amps):
+        modes.append(pha.mode(f, a, 0, 0))
+    for p in np.linspace(0, 1, 50):
+        modes = pha.amplitude_in_phase(time2, flux2, modes, phase=p)
+
+    fig = plt.figure(constrained_layout=True, figsize = figsize(3), dpi = dpi)
+    gs = fig.add_gridspec(5, 1)
+    ax1 = fig.add_subplot(gs[0,0])
+    ax2 = fig.add_subplot(gs[1,0])
+    ax3 = fig.add_subplot(gs[2,0])
+    ax4 = fig.add_subplot(gs[4,0])
+    ax5 = fig.add_subplot(gs[3,0])
+    for a, i in zip([ax1, ax2, ax3], range(3)):
+        a.errorbar(modes[i].phase_bins, modes[i].phase_amps, yerr=modes[i].phase_amps_, ls='', marker='o', color= 'k', ms = 5, capsize = 3)
+
+    for a in [ax1, ax2, ax3, ax4]:
+        a.set_xlim(0,1)
+    for a in [ax1, ax2, ax3]:
+        a.set_ylabel('Amplitude')
+        a.set_xticks([])
+    ax4.plot(time % period / period, flux, 'ko', ms=0.75)
+    ax4.set_xlabel('Phase')
+    ax4.set_ylabel('Flux')
+    for a, i in zip([ax1, ax2, ax3], range(3)):
+        x = np.array(modes[i].phase_bins)
+        y = np.array(modes[i].phase_amps)
+        sds = np.array(modes[i].phase_amps_)
+        ind = np.where(abs(x-0.3) <= 0.2)
+        popt, pcov = curve_fit(gaus, x[ind], y[ind], sigma = sds[ind], absolute_sigma=True,  p0=[1, 0.3, 0.05, 0.002])
+        xda = np.linspace(0.3-0.2,0.3+0.2, 500)
+        a.plot(xda, gaus(xda, *popt), 'r-')
+        Nexp = gaus(x[ind], *popt)
+        r = np.array(y[ind]) - Nexp
+        chisq = np.sum((r / sds[ind]) ** 2)
+        df = len(x[ind]) - 4
+        string = f'F{i+1}: {np.round(modes[i].f,2)}' +' d$^{-1}$\n$\\frac{\chi^2}{\mathrm{DoF}} = $' + str(np.round(chisq/df, 2))
+        a.text(0.825, a.set_ylim()[0]+ 0.1*(a.set_ylim()[1]-a.set_ylim()[0]), string)
+
+    x = np.array(modes[0].phase_bins)
+    y1 = np.array(modes[0].phase_amps)
+    y2 = np.array(modes[2].phase_amps)
+    y3 = np.array(modes[1].phase_amps)
+    y = (y1/np.mean(y1)+ y2/np.mean(y2))/2
+    sds1 = np.array(modes[0].phase_amps_)
+    sds2 = np.array(modes[2].phase_amps_)
+    sds_1 = sds1/np.mean(y1)
+    sds_2 = y1*np.std(y1)/(np.mean(y1)**2*np.sqrt(len(x)))
+    sds_3 = sds2/np.mean(y2)
+    sds_4 = y2*np.std(y2)/(np.mean(y2)**2*np.sqrt(len(x)))
+    sds_5 = np.sqrt((y1/np.mean(y1)- y)**2 + (y2/np.mean(y2)- y)**2)
+    sds = np.sqrt(sds_1**2 + sds_2**2 + sds_3**2 + sds_4**2+ sds_5**2)/2
+    #sds = np.sqrt(sds_1**2 + sds_3**2 )/2
+    ax5.errorbar(x, y, yerr = sds,  ls='', marker='o', color= 'k', ms = 5, capsize = 3)
+
+    popt, pcov = curve_fit(gaus, x, y, sigma=sds, absolute_sigma=True, p0=[1, 0.3, 0.05, 0.002])
+    xda = np.linspace(0,1, 500)
+    ax5.plot(xda, gaus(xda, *popt), 'r-')
+    Nexp = gaus(x, *popt)
+    r = np.array(y) - Nexp
+    chisq = np.sum((r / sds) ** 2)
+    df = len(x) - 4
+    string = '$\\frac{\chi^2}{\mathrm{DoF}} = $' + str(np.round(chisq/df, 2))
+    ax5.text(0.855, ax5.set_ylim()[0]+ 0.1*(ax5.set_ylim()[1]-ax5.set_ylim()[0]), string)
+
+    ax5.set_ylabel('Amplitude / Mean')
+    ax5.set_xticks([])
+
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0, hspace=0)
+    plt.savefig(dir + '/Figure6_model_motivation.pdf', bbox_inches=0)
+
+
+## Table Frequency list#
+def sig_digit(num):
+    place = -1
+    for i in range(len(str(num))):
+        val = str(num)[i]
+        if val =='.':
+            place = i
+    for i in range(len(str(num))):
+        val = str(num)[i]
+        try:
+            if int(val) > 2:
+                return i-place, int(val)
+            elif int(val) > 0:
+                return i+1 - place, int(str(num)[i:i+2])
+        except:
+            continue
+
+
+if True or do_all:
+    import mini_smurfs as ms
+    r = ms.load_result('minismurfs/result_pda_old.csv')
+    table = []
+    for f, ferr, amp, amperr, phase, phaseerr in zip(r['Frequency'],r['Frequency_error'], r['Amplitude'],r['Amplitude_error'], r['Phase'], r['Phase_error']):
+        if amp > 0.0000:
+            line = []
+            dig, err = sig_digit(ferr)
+            string = '${:' + str(dig) + 'f}({:d})$'
+            line.append(string.format(f, err))
+            dig, err = sig_digit(amperr)
+            string = r'${:' + str(dig) +'f}({:d})$'
+            line.append(string.format(amp, err))
+            dig, err = sig_digit(phaseerr)
+            string = r'${:' + str(dig) + 'f}({:d})$'
+            line.append(string.format(phase, err))
+            table.append(line)
+    print(tabulate(table, tablefmt="latex_raw"))
 
 
 #### Mail #####
@@ -294,7 +446,6 @@ if False or do_mail:
     ax[2].set_xlabel('frequency $d^{-1}')
     ax[2].set_ylabel('power')
     plt.tight_layout(h_pad=0, w_pad=0)
-
     plt.savefig(dir + 'mail.png', bbox_inches = 0)
 
 
