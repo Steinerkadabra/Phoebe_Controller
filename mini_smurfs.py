@@ -79,6 +79,8 @@ class MiniSmurfs:
                 self.take_step_sin_analytic(snr, ws)
             else:
                 self.take_step_sin(snr, ws)
+        if self.model == 'pda':
+            self.result = _pda_fit2(self.lc, self.result, final=True)
         print(f'Stopping after {len(self.result)} significant frequencies.')
 
     def save_result(self):
@@ -107,7 +109,7 @@ class MiniSmurfs:
                                    'sigma': sigmas, 'sigma_error': sigmaserrs, 'defects': defects,  'defects_error': defectserrs,
                                    'Component': components,
                                    'Power_Reduction': prs,'Variance Reduction': vrs, 'AIC': aics, 'BIC': bics, 'Free_params': nofps})
-            df.to_csv("minismurfs/result_pda.csv", index=False)
+            df.to_csv("minismurfs/result_pda_convergence_at_end.csv", index=False)
         else:
             df = pandas.DataFrame({'Frequency': fs, 'Frequency_error': fserr, 'Amplitude': amps, 'Amplitude_error': ampserr,
                                    'Phase': phis, 'Phase_error': phiserrs, 'SNR': snrs, 'Power_Reduction': prs,
@@ -535,7 +537,7 @@ def _pda_fit(lc, modes):
         result.append(r)
     return sorted(result, key=lambda x: x.iter)
 
-def _pda_fit2(lc, modes):
+def _pda_fit2(lc, modes, final = False):
     if len(lc.flux) <= 3 * len(modes) + 6:
         return 0
 
@@ -577,7 +579,10 @@ def _pda_fit2(lc, modes):
         #print('Starting improvement')
         converged = False
         num =1
-        while not converged:
+        max = 5
+        if final:
+            max = 10000
+        while not converged and num <= max:
             popt_p_old = np.array(popt_p.copy())
             popt_s_old = np.array(popt_s.copy())
             lc_primary.flux = lc.flux - pda_multiple(lc.time, *popt_s)
@@ -592,8 +597,6 @@ def _pda_fit2(lc, modes):
             mean_s = np.mean(dif_s)
             max_p = np.max(dif_p)
             max_s = np.max(dif_s)
-            print(f'Mean change it {num}:  Primary: ' + r'{:.3e}'.format(mean_p), 'Secondary:' + r'{:.3e}'.format(mean_s))
-            print(f'Max change it {num}:  Primary: ' + r'{:.3e}'.format(max_p), 'Secondary:' + r'{:.3e}'.format(max_s))
             if np.max([max_s, max_p]) < 10**-6 and  np.max([mean_s, mean_p]) < 10**-7:
                 converged = True
                 print(f'Mean change it {num}:  Primary: ' + r'{:.3e}'.format(mean_p), 'Secondary:' + r'{:.3e}'.format(mean_s))
