@@ -224,7 +224,7 @@ if False or do_all:
 
 
 ### Figure5: Different Amplitude Spectra ###
-if False or do_all:
+if True or do_all:
     freq = 1/1.66987725
     period = 1.66987725
     data = np.loadtxt('endurance/' + 'RS_Cha_lightcurve.txt').T
@@ -288,8 +288,8 @@ if False or do_all:
     mark_inset(ax01, ax01zoom, loc1=2, loc2=4, fc="none", ec="0.5")
 
     plt.tight_layout(h_pad=0, w_pad=0)
-    plt.savefig(dir + '/Figure5_amplitude_spectra.pdf', bbox_inches=0)
-    #plt.show()
+    # plt.savefig(dir + '/Figure5_amplitude_spectra.pdf', bbox_inches=0)
+    plt.show()
 
 ### Figure6: Why use Gaussian drop in Ampplitude?###
 if False or do_all:
@@ -380,40 +380,179 @@ if False or do_all:
 
 ## Table Frequency list#
 def sig_digit(num):
-    place = -1
-    for i in range(len(str(num))):
-        val = str(num)[i]
+    s = '{:.10f}'.format(num)
+    for i in range(len(s)):
+        val = s[i]
         if val =='.':
             place = i
-    for i in range(len(str(num))):
-        val = str(num)[i]
+    for i in range(len(s)):
+        val = s[i]
         try:
             if int(val) > 2:
-                return i-place, int(val)
+                return i-place, int(np.round(float(s[i:i+2])/10,0))
             elif int(val) > 0:
-                return i+1 - place, int(str(num)[i:i+2])
+                return i+1 - place, int(np.round(float(s[i:i+3])/10,0))
         except:
             continue
 
+class frequency():
+    def __init__(self, f, ferr, amp, amperr, phase, phaseerr, snr, key):
+        self.f = f
+        self.ferr = ferr
+        self.amp = amp
+        self.amperr = amperr
+        self.phase = phase
+        self.phaseerr = phaseerr
+        self.snr = snr
+        self.combination = ''
+        self.key = key
+        self.num = int(key[1:])
+
+    def find_combination(self, dic, a, b):
+        rl = 0.011865383643105324
+        for key1 in range(1, self.num):
+            if dic[f'F{key1}'].f == self.f:
+                continue
+            f1 = dic[f'F{key1}'].f
+            for key2 in range(1, self.num):
+                f2 = dic[f'F{key2}'].f
+                if f2 == self.f:
+                    continue
+                else:
+                    dif = a*f2 + b*f1 -self.f
+                    if abs(dif)<= rl/2:
+                        self.combination = self.combination + f'{"%+d" % (a)} F{key2} {"%+d" % (b)} F{key1};'
+
+    def print(self):
+        print(self.key +':    {:.3f}    {:.6f}$    {:.3f}    {:.3f}'.format(self.f, self.amp, self.phase, self.snr))
+        print('Found Combinations:', self.combination)
+
+def comb_frequencies(r):
+    r = r.sort_values(by=['Amplitude'], ascending=False)
+    l = {}
+    num = 1
+    for f, ferr, amp, amperr, phase, phaseerr, snr in zip(r['Frequency'], r['Frequency_error'], r['Amplitude'],
+                                                     r['Amplitude_error'], r['Phase'], r['Phase_error'],r['SNR'] ):
+        if amp > 0.000165:
+            l[f'F{num}'] = frequency(f, ferr, amp, amperr, phase, phaseerr, snr, f'F{num}')
+            num+=1
+    for i in range(2, len(l)+1):
+        for (a, b) in [(1,1), (1, -1), (-1, 1)]:
+                l[f'F{i}'].find_combination(l, a, b)
+        for (a, b) in [(2,1), (2, -1), (1, 2), (-1, 2), (-2, 1), (1,-2), (2,2), (2, -2)]:
+                l[f'F{i}'].find_combination(l, a, b)
+        for (a, b) in [(3,0), (4,0)]:
+                l[f'F{i}'].find_combination(l, a, b)
+    # print('key   Frequency  Amplitude    Phase     SNR')
+    # for i in range(1, len(l)+1):
+    #     l[f'F{i}'].print()
+    return l
+
+
+if False or do_all:
+    import mini_smurfs as ms
+    r = ms.load_result('minismurfs/result.csv')
+    r = r.sort_values(by=['Amplitude'], ascending=False)
+    l = comb_frequencies(r)
+
+    table = []
+    total_count = 0
+    above_count = 0
+    timebase = 1/0.011865383643105324
+    amp_err = np.sqrt(2/55309)*0.000165
+    f_err =np.sqrt(6/55309)*0.000165/timebase/np.pi
+    # for f, ferr, amp, amperr, phase, phaseerr in zip(r['Frequency'],r['Frequency_error'], r['Amplitude'],r['Amplitude_error'], r['Phase'], r['Phase_error']):
+    #     total_count += 1
+    #     if amp > 0.000165:
+    #         above_count += 1
+    #         line = []
+    #         dig, err = sig_digit(np.sqrt(ferr**2+(f_err/amp)**2))
+    #         string = '${:' + str(dig) + 'f}({:d})$'
+    #         line.append(string.format(f, err))
+    #         dig, err = sig_digit(np.sqrt(amperr**2+amp_err**2))
+    #         string = r'${:' + str(dig) +'d}({:d})$'
+    #         line.append(string.format(int(1000000*amp), err))
+    #         dig, err = sig_digit(np.sqrt(phaseerr**2+(amp_err/amp)**2))
+    #         string = r'${:.' + str(dig) + 'f}({:d})$'
+    #         line.append(string.format(phase, err))
+    #         table.append(line)
+    for i in range(1, len(l)+1):
+        mode = l[f'F{i}']
+        total_count += 1
+        if mode.amp > 0.000165:
+            above_count += 1
+            line = []
+            line.append(mode.key + ' = ' + mode.combination)
+            dig, err = sig_digit(np.sqrt(mode.ferr**2+(f_err/mode.amp)**2))
+            string = '${:.' + str(dig) + 'f}({:d})$'
+            line.append(string.format(mode.f, err))
+            dig, err = sig_digit(np.sqrt(mode.amperr**2+amp_err**2))
+            print(mode.amp, np.sqrt(mode.amperr**2+amp_err**2))
+            print(dig, err)
+            string = r'${:' + str(dig) +'d}({:d})$'
+            line.append(string.format(int(1000000*mode.amp), err))
+            dig, err = sig_digit(np.sqrt(mode.phaseerr**2+(amp_err/mode.amp)**2))
+            string = r'${:.' + str(dig) + 'f}({:d})$'
+            line.append(string.format(mode.phase, err))
+            table.append(line)
+
+    print(tabulate(table, tablefmt="latex_raw"))
+    # print(len(r))
+    # print(above_count)
+
+#### Figure? compare bics aics #####
+
+def sin_multiple(x, *params):
+    y = np.zeros(len(x))
+    for i in range(0, len(params), 3):
+        y += sin(x, params[i], params[i + 1], params[i + 2])
+    return y
+
+def sin(x, amp, f, phase):
+    return amp * np.sin(2. * np.pi * (f * x + phase))
 
 if True or do_all:
     import mini_smurfs as ms
-    r = ms.load_result('minismurfs/result_pda_old.csv')
-    table = []
-    for f, ferr, amp, amperr, phase, phaseerr in zip(r['Frequency'],r['Frequency_error'], r['Amplitude'],r['Amplitude_error'], r['Phase'], r['Phase_error']):
-        if amp > 0.0000:
-            line = []
-            dig, err = sig_digit(ferr)
-            string = '${:' + str(dig) + 'f}({:d})$'
-            line.append(string.format(f, err))
-            dig, err = sig_digit(amperr)
-            string = r'${:' + str(dig) +'f}({:d})$'
-            line.append(string.format(amp, err))
-            dig, err = sig_digit(phaseerr)
-            string = r'${:' + str(dig) + 'f}({:d})$'
-            line.append(string.format(phase, err))
-            table.append(line)
-    print(tabulate(table, tablefmt="latex_raw"))
+    r = ms.load_result('minismurfs/result.csv')
+    r = r.sort_values(by=['Amplitude'], ascending=False)
+    data = np.loadtxt('endurance/' + 'Final_Pulsation_LC.txt').T
+    time = data[0]
+    flux = data[1]
+    n = len(time)
+    fs = np.array(r['Frequency'])
+    amps = np.array(r['Amplitude'])
+    phis =  np.array(r['Phase'])
+    print(amps[76:85])
+    print(fs[76:85])
+    print(phis[76:85])
+    rsss = []
+    bic = []
+    aic = []
+    ks = []
+    for i in range(1, len(fs)+1):
+        print(i)
+        arr = []
+        k = 1+3*i
+        ks.append(k)
+        for j in range(0, i):
+            arr.append(amps[j])
+            arr.append(fs[j])
+            arr.append(phis[j])
+        mod = sin_multiple(time, *arr)
+        RSS = n*np.log(np.sum((flux-mod)**2)/n)
+        # plt.plot(time, flux, 'ko', ms = 0.75)
+        # plt.plot(time, mod, 'r-')
+        # plt.title(RSS)
+        # plt.show()
+        # plt.close()
+        rsss.append(RSS)
+        bic.append(RSS + k*np.log(n))
+        aic.append(RSS + 2*k + n)
+    fig, ax = plt.subplots(2,1,figsize = figsize1, dpi = dpi)
+    ax[0].plot(ks, bic, 'ko')
+    ax[0].plot(ks, aic, 'ro')
+    ax[1].plot(ks, rsss, 'ro')
+    plt.show()
 
 
 #### Mail #####

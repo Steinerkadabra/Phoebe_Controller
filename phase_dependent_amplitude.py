@@ -219,17 +219,21 @@ def plot_amplitude_statistics():
             df = len(means) - len(popt)
             print("chisq =", chisq, "df =", df, "reduced chisq", chisq/df)
             print('###################')
-            ax.errorbar(defects, means, yerr = sds, color = c[count], marker = marker, markerfacecolor= 'none',
+            ax.errorbar(defects, means, yerr = sds, color = c[key+5], marker = marker, markerfacecolor= 'none',
                         markeredgewidth = 2, capsize = 2, lw =0, elinewidth = 1, label = f"$A_{ {key} }   $"+ "$\\frac{\chi^2}{DoF}=$" +f"{np.round(chisq/df, 3)}")
             #ax.plot(x, square(x, *popt), color = c[count])
-            ax.plot(x, line(x, *popt), color = c[count])
+            lw ='-'
+            if key > 0:
+                lw ='--'
+            ax.plot(x, line(x, *popt), color = c[key+5], ls = lw)
             count+=1
     ax.legend(fontsize = 'small')
     ax.set_xlabel('Defect')
     ax.set_ylabel('relative Amplitude')
-    plt.tight_layout()
+    # plt.tight_layout()
     #plt.savefig('pda_simulations/plots/line.png', bbox_inches = 0)
-    plt.show()
+    # plt.show()
+    return fig, ax
 
 def sin(x: np.ndarray, amp: float, f: float, phase: float) -> np.ndarray:
 
@@ -360,5 +364,4 @@ dgm7 = ripser(np.array(f7))['dgms'][1]
 
 plot_diagrams([dgm8, dgm7] , labels=['Clean $H_1$', 'Noisy $H_1$'], show = True)
 '''
-
 

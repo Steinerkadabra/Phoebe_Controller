@@ -390,60 +390,59 @@ def fat_weird_thingie():
 
 
 
-'''
-lc_file = 'endurance/Final_Pulsation_LC.txt'
-data = np.loadtxt(lc_file).T
-times = data[0]
-flux = data[1]
-result = []
-flux_new = flux.copy()
-count = 0
-stop = False
-while count < 20:
-    pdg = lk.LightCurve(times, flux_new).to_periodogram(minimum_frequency = 8, maximum_frequency = 40)
-    amp = np.amax(pdg.power)
-    f = pdg.frequency[np.where(pdg.power == amp)[0][0]].value
-    print(f, amp)
-    limits = [[0.5 * amp, 0.9 * f, 0, 0.2, 0.0, 0.4], [1.5 * amp, 1.1 * f, 1000, 0.4, 0.1, 0.8]]
-    popt, pcov = curve_fit(pda, times, flux_new, p0=[amp, f, 0, 0.3, 0.05, 0.5], bounds = limits)
-    result.append(popt)
-    flux_new = flux_new -  pda(times, *popt)
-    count += 1
+# lc_file = 'endurance/Final_Pulsation_LC.txt'
+# data = np.loadtxt(lc_file).T
+# times = data[0]
+# flux = data[1]
+# result = []
+# flux_new = flux.copy()
+# count = 0
+# stop = False
+# while count < 20:
+#     pdg = lk.LightCurve(times, flux_new).to_periodogram(minimum_frequency = 8, maximum_frequency = 40)
+#     amp = np.amax(pdg.power)
+#     f = pdg.frequency[np.where(pdg.power == amp)[0][0]].value
+#     print(f, amp)
+#     limits = [[0.5 * amp, 0.9 * f, 0, 0.2, 0.0, 0.4], [1.5 * amp, 1.1 * f, 1000, 0.4, 0.1, 0.8]]
+#     popt, pcov = curve_fit(pda, times, flux_new, p0=[amp, f, 0, 0.3, 0.05, 0.5], bounds = limits)
+#     result.append(popt)
+#     flux_new = flux_new -  pda(times, *popt)
+#     count += 1
+#
+# for p in result:
+#     print('F:', p[1], 'A:', p[0], 'phi:', p[2], 'phi_0:', p[3], 'sigma:', p[4], 'defect:', p[5])
+# fig, ax = plt.subplots(2,1, figsize = (12,6))
+# ax[0].plot(times, flux, 'ko', ms = 0.75)
+# ax[0].plot(times, flux-flux_new, 'r-')
+# ax[1].plot(pdg.frequency, lk.LightCurve(times, flux).to_periodogram(minimum_frequency = 8, maximum_frequency = 40).power, 'k-')
+# ax[1].plot(pdg.frequency, pdg.power, 'r-')
+# plt.show()
+#
+#
+#
+#
+#
+#
+#
+# lc_file = 'endurance/Final_Pulsation_LC.txt'
+# data = np.loadtxt(lc_file).T
+# times = data[0]
+# flux = data[1]
+#
+# fs = [11.0703910326469 ,11.624895962024176 ,12.79520550704062, 20.122516352277714 ,18.924907836258388,]#12.822593234768355 ,10.427356235437156 ,25.63617123640961]
+# amps = [0.0016715568284938562, 0.0016435120422416158, 0.0014987863342293011,0.0009152175177519561, 0.000851788328761722, ]#0.0007491355996644594,0.0006890738769746643,0.0005867220290295697]
+#
+# modes = []
+# for f, a in zip(fs, amps):
+#     modes.append(mode(f, a, 0, 0))
+#
+# for p in np.linspace(0, 1, 100):
+#     modes = amplitude_in_phase(times, flux, modes, phase = p)
+#
+# fig, ax = plt.subplots(4, figsize = (12,7))
+# for i in range(3):
+#     ax[i].errorbar(modes[i].phase_bins, modes[i].phase_amps, yerr=modes[i].phase_amps_, ls = '', marker = 'o', color = 'k')
+# period = 1.66987725
+# ax[3].plot(times%period/period, flux, 'ko', ms = 0.75)
+# plt.show()
 
-for p in result:
-    print('F:', p[1], 'A:', p[0], 'phi:', p[2], 'phi_0:', p[3], 'sigma:', p[4], 'defect:', p[5])
-fig, ax = plt.subplots(2,1, figsize = (12,6))
-ax[0].plot(times, flux, 'ko', ms = 0.75)
-ax[0].plot(times, flux-flux_new, 'r-')
-ax[1].plot(pdg.frequency, lk.LightCurve(times, flux).to_periodogram(minimum_frequency = 8, maximum_frequency = 40).power, 'k-')
-ax[1].plot(pdg.frequency, pdg.power, 'r-')
-plt.show()
-
-
-
-
-
-
-
-lc_file = 'endurance/Final_Pulsation_LC.txt'
-data = np.loadtxt(lc_file).T
-times = data[0]
-flux = data[1]
-
-fs = [11.0703910326469 ,11.624895962024176 ,12.79520550704062, 20.122516352277714 ,18.924907836258388,]#12.822593234768355 ,10.427356235437156 ,25.63617123640961]
-amps = [0.0016715568284938562, 0.0016435120422416158, 0.0014987863342293011,0.0009152175177519561, 0.000851788328761722, ]#0.0007491355996644594,0.0006890738769746643,0.0005867220290295697]
-
-modes = []
-for f, a in zip(fs, amps):
-    modes.append(mode(f, a, 0, 0))
-
-for p in np.linspace(0, 1, 100):
-    modes = amplitude_in_phase(times, flux, modes, phase = p)
-
-fig, ax = plt.subplots(4, figsize = (12,7))
-for i in range(3):
-    ax[i].errorbar(modes[i].phase_bins, modes[i].phase_amps, yerr=modes[i].phase_amps_, ls = '', marker = 'o', color = 'k')
-period = 1.66987725
-ax[3].plot(times%period/period, flux, 'ko', ms = 0.75)
-plt.show()
-'''

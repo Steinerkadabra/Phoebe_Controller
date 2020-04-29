@@ -79,8 +79,8 @@ class MiniSmurfs:
                 self.take_step_sin_analytic(snr, ws)
             else:
                 self.take_step_sin(snr, ws)
-        if self.model == 'pda':
-            self.result = _pda_fit2(self.lc, self.result, final=True)
+        # if self.model == 'pda':
+        #     self.result = _pda_fit2(self.lc, self.result, final=True)
         print(f'Stopping after {len(self.result)} significant frequencies.')
 
     def save_result(self):
@@ -109,7 +109,7 @@ class MiniSmurfs:
                                    'sigma': sigmas, 'sigma_error': sigmaserrs, 'defects': defects,  'defects_error': defectserrs,
                                    'Component': components,
                                    'Power_Reduction': prs,'Variance Reduction': vrs, 'AIC': aics, 'BIC': bics, 'Free_params': nofps})
-            df.to_csv("minismurfs/result_pda_convergence_at_end.csv", index=False)
+            df.to_csv("minismurfs/result_pda_convergence_5_times.csv", index=False)
         else:
             df = pandas.DataFrame({'Frequency': fs, 'Frequency_error': fserr, 'Amplitude': amps, 'Amplitude_error': ampserr,
                                    'Phase': phis, 'Phase_error': phiserrs, 'SNR': snrs, 'Power_Reduction': prs,
