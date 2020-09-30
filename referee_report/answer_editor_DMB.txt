@@ -1,0 +1,10 @@
+Dear Dr. Rubina Kotak,
+
+thank you for forwarding the referee's comments. After considering the referee's major concerns, we agree that our approach to the amplitude variations was too simplified and the interpretation of its result too ambitious. We therefore re-ordered the manuscript and moved the former sections 5.3 and 5.4 describing the mode-identification based on phase dependent amplitudes (which we now refer to as a "toy model") to the appendix. In any case, we clearly demonstrate and are convinced that the reported frequency multiplets and their corresponding signatures allow the discovery of tidally perturbed modes from the traditional analysis using a superposition of linear modes. 
+
+We also addressed all the minor points found by the referee and corrected them.
+
+All changes are marked in bold face throughout the revised version of the manuscript.
+
+Best regards,
+Thomas Steindl (on behalf of the co-authors)

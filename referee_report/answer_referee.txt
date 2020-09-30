@@ -1,0 +1,47 @@
+Dear referee,
+
+thank you for taking the time to referee this work. After considering your comments, we agree that our approach to the amplitude variations was too simplified and the interpretation of its results too ambitious. We therefore degrade our approach using the Gaussian profile to a toy model and base our results solely on the traditional model. We are convinced that the reported frequency multiplets and their corresponding signatures allow the discovery of tidally perturbed modes even without physical modeling of the amplitude variations. As a consequence, we state that the mode identification based on the traditional model can only be considered as a first step and can be improved by additional work that is out of the scope of the present study.
+
+REFEREE:
+
+major point:
+	The formula of the amplitude variation (Eq. (3)) should be justified theoretically. While the amplitude variation should apparently depend on the mode degree and the azimuthal order, it is unclear how those indices are related to the parameters of the Gaussian profile. In addition, the reason for the poor fitting in the case of F2 (cf. second top panel of Fig. 7) should be discussed. Moreover, Fig. 7 demonstrates the amplitude variation even outside the eclipses. The reason for this should also be explained. Without secure modelling of the amplitude variation due to the orbital motion, we cannot discuss the tidal perturbation of the pulsation frequencies as in section 6.
+
+AUTHORS:
+	We agree that the Gaussian profile does not describe the amplitude variations very well outside the eclipses. The choice of a Gaussian profile is not justified either theoretically or physically. However, we have shown that the amplitude variations during the time of eclipse are well described by a Gaussian profile. Therefore, we think that such a Gaussian profile can be used to generate a non-physical toy model and investigate the influence of amplitude variations on the observed frequencies, and hence, the discussion of tidally perturbed modes. 
+	Our inclusion of the Gaussian profile in the original version was too ambitious. We agree that more effort is needed to properly model the amplitude variations. However, we deem this to be outside the scope of the current work. To highlight the non-physicality of the Gaussian profile, we degraded the model using a Gaussian profile to a toy model. We moved the discussion of Section 5.3 and 5.4 to the appendix. In the present version of the manuscript, the entire pulsation modeling is only done with the traditional Fourier analysis, the superposition of linear modes. Also, the discussion of tidally perturbed modes is solely based on the results of this traditional model. However, we use the insight we gained from modeling the light curve with the toy model to illustrate the fact that the mode identification is insecure and hence only a first try. 
+
+
+REFEREE:
+	minor points:
+
+	-page 1, section 1, line 8:
+	 weight and temperature -> mass and radius
+
+	-page 2, section 1, last paragraph, line 5:
+	 Transiting Exoplanet Transit Survey -> Transiting Exoplanet Survey Satellite
+
+	-page 4, left column, 2nd last line:
+	 (t0 + (i + 1/2 P) -> (t0 + (i + 1/2) P)
+
+AUTHORS:
+	We thank the referee for finding these mistakes and gladly apply these changes.
+
+REFEREE:
+	language
+	Some elementary errors are observed. Only a few of them are given below:
+
+	-page 2, section 1, line 10:
+	 describe -> describes
+
+	-page 2, right column, third paragraph, line 7:
+	 Figgure -> Figure
+
+	-page 10, caption of Fig. 9, line 6:
+	 were -> where
+
+	-page 12, left column, second paragraph, line 8:
+	 interia -> interior
+
+AUTHORS:
+	Again, we thank the referee for finding these mistakes and gladly apply these changes.
