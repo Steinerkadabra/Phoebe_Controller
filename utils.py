@@ -41,7 +41,8 @@ def load_lc(lc_file = 'RS_CHA_lightcurve.txt', plot= False, npoints = 5000, poin
 def remove_binary_signal(folder, endurance_dir, compare_lc,  exp_time = False):
     history = load_history(folder)
     best_vals = get_best_vals(history)
-    times, fluxes, sigmas = load_lc(endurance_dir + compare_lc, npoints=10000, parts_of_lc=False )
+    print('Load Light Curve')
+    times, fluxes, sigmas = load_lc(endurance_dir + compare_lc, npoints=10, parts_of_lc=True )
     fig3 = plt.figure(constrained_layout=True, figsize=(15,8))
     gs = fig3.add_gridspec(2, 3)
     ax00 = fig3.add_subplot(gs[0, :-1])
@@ -55,15 +56,16 @@ def remove_binary_signal(folder, endurance_dir, compare_lc,  exp_time = False):
         ax.set_ylabel('normalized flux')
     for ax in [ax10, ax11]:
         ax.set_xlim(np.min(times), np.min(times) + 3.2)
+    print('Start Phoebe')
     chi2, mod_flux = phoebe_controller.chi_square_multi(best_vals, fluxes, times, sigmas, exp_time= exp_time)
     ax00.plot(times, mod_flux, 'r-')
     ax10.plot(times, mod_flux, 'r-')
     ax01.plot(times, mod_flux-fluxes, 'ko', markersize = 0.75)
     ax11.plot(times, mod_flux-fluxes, 'ko', markersize = 0.75)
     plt.tight_layout()
-    plt.savefig(folder + 'LC_p_binary_model.png')
-    np.savetxt(folder+ 'binary_model.txt', np.array([times, mod_flux]).T)
-    np.savetxt(folder+ 'residuals.txt', np.array([times, np.array(mod_flux)- np.array(fluxes)]).T)
+    # plt.savefig(folder + 'LC_p_binary_model.png')
+    # np.savetxt(folder+ 'binary_model.txt', np.array([times, mod_flux]).T)
+    # np.savetxt(folder+ 'residuals.txt', np.array([times, np.array(mod_flux)- np.array(fluxes)]).T)
     plt.show()
     plt.close()
 
@@ -71,6 +73,6 @@ plt.rcParams.update({'font.size': 20.0, 'xtick.labelsize': 'x-small'})
 #print(plt.rcParams)
 phoebe_controller.initialize_phoebe(mpi_ncores=16, logger=False)
 
-endurance_dir = 'data/'
+endurance_dir = 'endurance/'
 #remove_binary_signal(endurance_dir + 'iteration2/', endurance_dir, 'result_iteration1.txt', exp_time = False)
 remove_binary_signal(endurance_dir + 'Removed_Pulsations_from_first_run_irrad_gravbol/', endurance_dir,  'Removed_Pulsations_from_first_run.txt', exp_time = True)

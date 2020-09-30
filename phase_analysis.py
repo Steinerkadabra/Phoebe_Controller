@@ -78,6 +78,58 @@ def _scipy_fit(lc, modes):
         r.phase = vals[2]
     return result, np.sqrt(2/len(lc.time))*0.000165
 
+def _scipy_fit_fixed_f(lc, modes):
+    """
+    stolen from smurfs
+    """
+
+    if len(lc.flux) <= 3 * len(modes):
+        return 0
+
+    result = []
+    single_lc = lk.LightCurve(lc.time, lc.flux)
+    for m in modes:
+        amp, f, phi = scipy_fit(single_lc, m)
+        result.append(mode(f.n, amp.n, phi.n, 0))
+        single_lc.flux = single_lc.flux - sin(single_lc.time, amp.n, f.n, phi.n)
+
+    arr = []
+    boundaries = [[], []]
+    for r in result:
+        arr.append(r.amp)
+        boundaries[0].append(0)
+        boundaries[1].append(2 * r.amp)
+        arr.append(r.f)
+        boundaries[0].append(r.f-0.0000001)
+        boundaries[1].append(r.f+0.0000001)
+        arr.append(r.phase)
+        boundaries[0].append(-np.inf)
+        boundaries[1].append(np.inf)
+
+
+
+    try:
+        popt, pcov = curve_fit(sin_multiple, lc.time, lc.flux, p0=arr, bounds = boundaries, method= 'trf')
+    except RuntimeError:
+        print(f"Failed to improve first {len(modes)} frequencies. Skipping fit improvement.")
+        return 0
+
+    perr = np.sqrt(np.diag(pcov))
+
+    Nexp = sin_multiple(lc.time, *popt)
+    r = np.array(lc.flux) - Nexp
+    chisq = np.sum(r ** 2)
+    df = len(lc.time) - 3*len(modes)
+    # print("chisq =", chisq, "df =", df, 'chisq/DoF', chisq/df)
+
+
+    for r, vals in zip(result,
+                       [[ufloat(popt[i + j], perr[i + j]) for j in range(0, 3)] for i in range(0, len(popt), 3)]):
+        r.amp = vals[0]
+        r.f = vals[1]
+        r.phase = vals[2]
+    return result, np.sqrt(2/len(lc.time))*0.000165
+
 def sin_multiple(x: np.ndarray, *params) -> np.ndarray:
     """
     Multiple sinuses summed up
@@ -129,7 +181,7 @@ def amplitude_in_phase(time, flux, modes, period = 1.66987725, phase = 0.5, delt
     else:
         ind = np.where(np.logical_or(p >= start, p <= end))
     lc = lk.LightCurve(time[ind], flux[ind])
-    result, amp_err = _scipy_fit(lc, modes)
+    result, amp_err = _scipy_fit_fixed_f(lc, modes)
     if result == 0:
         return modes
     for mode, mode_r in zip(modes, result):

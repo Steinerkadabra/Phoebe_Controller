@@ -181,18 +181,18 @@ def get_amplitude_value(folder, key):
     xs = (edges[1:]+edges[:-1])/2
     try:
         popt, pcov = curve_fit(gauss, xs, vals, p0=[100, np.mean(data), np.std(data)])
-        return popt[1], popt[2]
+        return popt[1], popt[2], len(data)
     except RuntimeError:
         errfig, errax = plt.subplots(figsize = (12,7))
         x = np.linspace(np.min(data), np.max(data), 500)
         errax.plot(x, gauss(x, *[100, np.mean(data), np.std(data)]), 'r-')
         errax.bar(xs, vals, width = edges[1]-edges[0], edgecolor = 'k', facecolor = 'gray')
         errax.set_title(key)
-        return 0, 0
+        return 0, 0, 0
 
-def plot_amplitude_statistics():
+def plot_amplitude_statistics(figsize, dpi):
     c = ['#FF5733', '#FFB900', '#93FF00', '#019539', '#00D1EA', '#000BEA', '#BF00EA', '#806979', '#000000', '#3e197c', '#ffb600']
-    fig, ax = plt.subplots(figsize = (12,7))
+    fig, ax = plt.subplots(figsize = figsize, dpi = dpi)
     amp_key = [f"amp_{i}" for i in range(-5, 6)]
     count = 0
     for key in range(-5, 6):
@@ -201,10 +201,10 @@ def plot_amplitude_statistics():
             sds = []
             defects = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
             for folder in  range(4, 12):
-                m, s = get_amplitude_value(folder, f'amp_{key}')
+                m, s, length = get_amplitude_value(folder, f'amp_{key}')
                 means.append(m)
                 sds.append(s)
-            marker = 'o'
+            marker = '^'
             if key > 0:
                 marker = 's'
             #popt, pcov = curve_fit(square, defects, means, sigma=sds,  p0=[(means[-1]-means[0])/0.7, 0], absolute_sigma=True)
@@ -217,17 +217,17 @@ def plot_amplitude_statistics():
             r = N - Nexp
             chisq = np.sum((r / np.array(sds)) ** 2)
             df = len(means) - len(popt)
-            print("chisq =", chisq, "df =", df, "reduced chisq", chisq/df)
+            print("chisq =", chisq, "df =", df, "reduced chisq", chisq/df, 'num= ', length)
             print('###################')
-            ax.errorbar(defects, means, yerr = sds, color = c[key+5], marker = marker, markerfacecolor= 'none',
-                        markeredgewidth = 2, capsize = 2, lw =0, elinewidth = 1, label = f"$A_{ {key} }   $"+ "$\\frac{\chi^2}{DoF}=$" +f"{np.round(chisq/df, 3)}")
+            ax.errorbar(defects, means, yerr = sds, color = c[key+5], marker = marker,  markerfacecolor= 'none',
+                        markeredgewidth = 1, capsize = 2, lw =0, elinewidth = 1, label = f"$\\tilde{{A}}_{ {key} }$")#   $"+ "$\\frac{\chi^2}{DoF}=$" +f"{np.round(chisq/df, 3)}")
             #ax.plot(x, square(x, *popt), color = c[count])
             lw ='-'
             if key > 0:
                 lw ='--'
             ax.plot(x, line(x, *popt), color = c[key+5], ls = lw)
             count+=1
-    ax.legend(fontsize = 'small')
+    ax.legend(fontsize = 'small', ncol = 4, labelspacing=0.05, handletextpad = 0.1)
     ax.set_xlabel('Defect')
     ax.set_ylabel('relative Amplitude')
     # plt.tight_layout()

@@ -1,8 +1,8 @@
-phoebe
+phoebe==2.2.1
 numpy
 matplotlib
 lightkurve
 tqdm
-scipy
+scipy==1.3.2
 uncertainties
 tabulate
