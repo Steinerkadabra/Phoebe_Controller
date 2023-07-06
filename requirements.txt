@@ -3,6 +3,6 @@ numpy
 matplotlib
 lightkurve
 tqdm
-scipy==1.3.2
+scipy==1.10.0
 uncertainties
 tabulate
